@@ -1,0 +1,32 @@
+{% load static %}
+<div class="footer">
+    <div>
+        <ul>
+            {% for link in nav_bar %}
+                <li>
+                    <a href="{% url link.url_name %}">{{ link.title }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+    <img class="logo" src='{% static "main/images/logo.svg" %}'></img>
+</div>
+<style>
+.footer {
+    margin-top: 100px;
+
+    display: flex;
+    justify-content: space-around;
+    height: 150px;
+    background-color: #0a0a0a;
+}
+.footer ul {
+    list-style: none;
+    font-family: 'Roboto', cursive;
+    margin: 50px;
+}
+.footer a {
+    text-decoration: none;
+    color: white;
+}
+</style>

@@ -1,0 +1,153 @@
+{% load static %}
+{% load cache %}
+<div class="top">
+  <div>
+    <h1>Быстрый обмен валют</h1>
+    <div class="rate-wrap">
+    <img src='{% static "main/images/trending.svg" %}'/>
+    <div class="middle">
+      <div class="bar bar1"></div>
+      <div class="bar bar2"></div>
+      <div class="bar bar3"></div>
+    </div>
+    <span class="rate-span" style="display: none;">Курс обмена: </span>
+    <span  class="rate-span" style="display: none;" id="rate-exchange"></span>
+  </div>
+  </div>
+</div>
+<div class="coins">
+  <input type="hidden" name="csrfmiddlewaretoken" value="{{ token }}">
+  
+  <div class="give-block">
+    <div>
+      <div class="table-header">
+        <table cellpadding="0" cellspacing="0">
+          <thead>
+            <tr>
+              <th>Отдадите</th>
+            </tr>
+          </thead>
+        </table>
+      </div>
+        <div class="table-content-give">
+          <table cellpadding="0" cellspacing="0">
+            <tbody id="give-table">
+              {% for give_currency in give_currency_list %}
+                <tr>
+                  <td
+                  class="currency-td" currency-id="{{ give_currency.give_id }}"
+                  payment-method="{{ give_currency.give__category_payment_method__id }}"
+                  currency-name-short="{{ give_currency.give__currency_name_short }}">
+                    <img src="{{ MEDIA_URL }}{{ give_currency.give__image}}" ></img>
+                        {{ give_currency.give__currency_name }}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+  </div>
+  <div class="receive-block">
+    <div>
+      <div class="table-header">
+        <table cellpadding="0" cellspacing="0">
+          <thead>
+            <tr>
+              <th>Получите</th>
+            </tr>
+          </thead>
+        </table>
+      </div>
+    <div class="table-content-receive">
+        <table cellpadding="0" cellspacing="0"> 
+          <tbody id="receive-table">
+          </tbody>
+        </table>
+    </div>
+    </div>
+  </div>
+  <div class="form-start">
+    <div class="table-header">
+      <table cellpadding="0" cellspacing="0">
+        <thead>
+          <tr>
+            <th>Реквизиты</th>
+          </tr>
+        </thead>
+      </table>
+    </div>
+    <div id="give-form">
+      <div>
+        <input id="give-input-sum" min="0" type="number" placeholder="Сумма">
+        <label id="give-currency-name-short"></label>
+      </div>
+      <div id="give-crypto-form">
+        <div id="give-networks-body" class="networks_body">
+          {% for token in give_token_list %}
+          <div class="network">
+            <input id="{{token.give__token_standart__id}}" class="custom-radio" name="networks_1"
+            type="radio" value="{{token.give__token_standart__token_standart}}" undefined="">
+            <label for="{{token.give__token_standart__id}}">{{token.give__token_standart__token_standart}}</label>
+            </div>
+          {% endfor %}
+              
+        </div>
+        <div class="give_input_wallet">
+          <div>
+            <input id='give_input_crypto'>
+          </div>
+        </div>
+      </div>
+      <div id="give-bank-card-form">
+        <div>
+          <input id="give-input-name" placeholder="ФИО отправителя">
+        </div>
+        <div>
+          <input id="give-input-bank-card">
+          <label class="label-length">от 16 до 18 цифр</label>
+        </div>
+      </div>
+      <div id="give-online-wallet">
+        <div>
+          <input id="give-input-online-wallet" placeholder="">
+        </div>
+      </div>
+    </div>
+    <img class="down-arrow" src='{% static "main/images/down-arrow.svg" %}'/>
+
+    <div id="receive-form">
+      <div>
+        <input id="receive-input-sum" type="number" placeholder="Сумма">
+        <label id="receive-currency-name-short"></label>
+      </div>
+      <div id="receive-crypto-form">
+        <div id="receive-networks-body" class="networks_body">
+          
+        </div>
+        <div class="receive_input_wallet">
+          <div>
+            <input id='receive_input_crypto'>
+          </div>
+        </div>
+      </div>
+      <div id="receive-bank-card-form">
+        <div>
+          <input id="receive-input-name" placeholder="ФИО отправителя">
+        </div>
+        <div>
+          <input id="receive-input-bank-card">
+          <label class="label-length">от 16 до 18 цифр</label>
+        </div>
+      </div>
+      <div id="receive-online-wallet">
+        <div>
+          <input id="receive-input-online-wallet" placeholder="">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<link rel="stylesheet" href="{% static 'main/css/coins.css' %}" type="text/css">
+<script type="text/javascript" src="{% static 'main/js/loaded.js'%}"></script>
+<script type="text/javascript" src="{% static 'main/js/payment_method_select.js' %}"></script>

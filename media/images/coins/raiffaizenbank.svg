@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 25.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd" [
+	<!ENTITY ns_extend "http://ns.adobe.com/Extensibility/1.0/">
+	<!ENTITY ns_ai "http://ns.adobe.com/AdobeIllustrator/10.0/">
+	<!ENTITY ns_graphs "http://ns.adobe.com/Graphs/1.0/">
+	<!ENTITY ns_vars "http://ns.adobe.com/Variables/1.0/">
+	<!ENTITY ns_imrep "http://ns.adobe.com/ImageReplacement/1.0/">
+	<!ENTITY ns_sfw "http://ns.adobe.com/SaveForWeb/1.0/">
+	<!ENTITY ns_custom "http://ns.adobe.com/GenericCustomNamespace/1.0/">
+	<!ENTITY ns_adobe_xpath "http://ns.adobe.com/XPath/1.0/">
+]>
+<svg version="1.1" xmlns:x="&ns_extend;" xmlns:i="&ns_ai;" xmlns:graph="&ns_graphs;"
+	 xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 42 42"
+	 enable-background="new 0 0 42 42" xml:space="preserve">
+<switch>
+	<foreignObject requiredExtensions="&ns_ai;" x="0" y="0" width="1" height="1">
+		<i:aipgfRef  xlink:href="#adobe_illustrator_pgf">
+		</i:aipgfRef>
+	</foreignObject>
+	<g i:extraneous="self">
+		<g id="фон">
+		</g>
+		<g id="примеры">
+		</g>
+		<g id="лого">
+			<g>
+				<path fill="#1D1D1D" d="M8.8009939,14.2153683l4.3797283,4.3800926l1.4188366-1.4185638v-2.5633469l1.1075096,1.1075087
+					v3.4716291l14.1169157,14.1170998l3.6148968-3.614809L18.7554531,15.0117321l0.8960686-0.8958864
+					c-1.4076385-1.4458656-2.8152771-2.8916578-4.2229156-4.3375072c-0.4715471-0.4843473-1.057785-0.857955-1.7186222-1.0002375
+					c-0.3092022-0.0665731-0.6623116-0.1040421-1.0498419-0.0811405c-1.0535555,0.0622473-1.7753687,0.5355272-2.0655518,0.7308359
+					c-0.5803671,0.3908911-0.9113808,0.8193312-1.2227077,1.2226171c-0.1859217,0.2406044-0.6394243,0.8544188-1.0003309,1.7606955
+					c-0.4272552,1.0737877-0.5504742,2.0871515-0.5570359,2.889986L8.8009939,14.2153683z"/>
+				<path fill="#1D1D1D" d="M33.1990051,14.2153683l-4.3797283,4.3800926l-1.4188366-1.4185638v-2.5633469l-1.1075077,1.1075087
+					v3.4716291L12.1760168,33.3097878l-3.6148987-3.614809l14.6834288-14.6832466l-0.8960686-0.8958864
+					c1.4076385-1.4458656,2.8152771-2.8916578,4.2229156-4.3375072c0.4715462-0.4843473,1.057785-0.857955,1.7186222-1.0002375
+					c0.3092022-0.0665731,0.6623116-0.1040421,1.0498428-0.0811405c1.0535545,0.0622473,1.7753677,0.5355272,2.0655518,0.7308359
+					c0.5803661,0.3908911,0.9113808,0.8193312,1.2227058,1.2226171c0.1859245,0.2406044,0.6394272,0.8544188,1.0003319,1.7606955
+					c0.4272537,1.0737877,0.5504723,2.0871515,0.5570374,2.889986L33.1990051,14.2153683z"/>
+			</g>
+		</g>
+	</g>
+</switch>
+</svg>

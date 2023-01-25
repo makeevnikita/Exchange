@@ -1,0 +1,29 @@
+.header-content {
+  width: 100%;
+  background-color: #0a0a0a;
+  display: flex;
+}
+.logo {
+  max-height: 100px;
+  margin-left: 50px;
+}
+.nav-bar {
+  max-height: 50%;
+  margin-top: 50px;
+}
+.nav-bar a{
+  text-decoration: none;
+  color: white;
+}
+.header-content ul {
+  list-style: none;
+  display: flex;
+  color: white;
+  font-family: 'Press Start 2P', cursive;
+}
+.header-content ul li{
+  margin-right: 25px;
+}
+.header-content ul li:hover::marker{
+  content: '>';
+}

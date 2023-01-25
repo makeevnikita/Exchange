@@ -1,0 +1,58 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'main/css/item.css' %}" type="text/css">
+<div class="item">
+    <h2>
+    Отдаете
+    </h2>
+    <div class="currency-in">
+        <input class="in-text" type="number" placeholder="Сумма">
+        <label class="currency-name" style="">BTC</label>
+    </div>
+        <div class="main_select dropdown-trigger f_unlock" data-target="pay_system_dropdown_1">
+        <div class="select_active">
+        <div class="img">
+    <span>
+        <img class="mini-in-logo" src="/media/pslogo/sberbank_d9HDvuA.svg" alt="">
+    </span>
+    </div>
+        <p id="bank-name-in">Сбербанк RUB</p>
+    </div>
+    </div><ul id="pay_system_dropdown_1" class="dropdown-content main_select" tabindex="0" style="">
+    <div class="select_hidden" tabindex="0">
+    <div class="top">
+    <a class="dropdown-type-filter active" data-type="all" data-way="1">Все</a>
+    <a class="dropdown-type-filter" data-type="r" data-way="1">RUB</a>
+    <a class="dropdown-type-filter" data-type="d" data-way="1">USD</a>
+    <a class="dropdown-type-filter" data-type="e" data-way="1">EUR</a>
+    <a class="dropdown-type-filter" data-type="u" data-way="1">UAH</a>
+    <a class="dropdown-type-filter" data-type="k" data-way="1">KZT</a>
+    <a class="dropdown-type-filter" data-type="b" data-way="1">BYN</a>
+    <a class="dropdown-type-filter" data-type="c" data-way="1">Coin</a>
+    </div>
+    
+    </div>
+    </ul>
+    <div class="input__wrap radio-inputs networks_1" style="display: none;">
+    <div style="font-size: 16px;font-weight: 700; color: #2f3a43; margin-bottom: 5px;">Выберите сеть:</div>
+    <div class="networks_body"><p><label onclick="changePaysystems(1, 5)">  <input class="exchange__input__radio" name="networks_1" type="radio" value="BTC" checked="">  <span>BTC</span></label></p><p><label onclick="changePaysystems(1, 87)">  <input class="exchange__input__radio" name="networks_1" type="radio" value="BEP 20" undefined="">  <span>BEP 20</span></label></p></div>
+    </div>
+    <a class="dropdown-trigger btn dropdown_cities cities_1" href="#" data-target="cities_1" style="display:none;">
+    <span></span>
+    <span class="city_active">Москва</span>
+    <span class="material-icons" style="position: relative; left: 7px; top: -1px; font-size: 21px; float: right;">
+    unfold_more
+    </span>
+    </a><ul id="cities_1" class="dropdown-content" tabindex="0">
+    <li tabindex="0"><a href="#!">one</a></li>
+    <li tabindex="0"><a href="#!">two</a></li>
+    <li class="divider" tabindex="-1"></li>
+    <li tabindex="0"><a href="#!">three</a></li>
+    <li tabindex="0"><a href="#!"><i class="material-icons">view_module</i>four</a></li>
+    <li tabindex="0"><a href="#!"><i class="material-icons">cloud</i>five</a></li>
+    </ul>
+    <div class="way_notification " style="border-radius: 25px; display: none;">
+    <span class="way_notification__body"></span>
+    </div>
+    <div id="in-inputs">
+    <div class="main_input pay-input small_input"><div class="input__wrap" id="from_requis1"><input type="T" placeholder="ФИО отправителя"><label></label></div></div><div class="main_input pay-input small_input"><div class="input__wrap" id="from_requis2"><input type="N" placeholder="Карта Сбербанка (без пробелов)"><label>от 16 до 18 цифр</label></div></div></div>
+    </div>
