@@ -1,0 +1,50 @@
+{% load static %}
+<html>
+    <meta charset="UTF-8"/>
+    <head>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="{% static 'main/css/header.css' %}" type="text/css">
+        <link rel="stylesheet" href="{% static 'main/css/footer.css' %}" type="text/css">
+        {% block header %}
+        {% endblock %}
+        <title>{{ titile }}</title>
+    </head>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:wght@300&display=swap" rel="stylesheet"> 
+    <header>
+        <div class='header-content'>
+            <img class="logo" src='{% static "main/images/logo.svg" %}'></img>
+            <div class="nav-bar">
+                <ul>
+                    {% for link in nav_bar %}
+                        <li>
+                            <a href="{% url link.url_name %}">{{ link.title }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </header>
+    <body>
+        {% block content %}
+        {% endblock %}
+    </body>
+    <div class="footer">
+        <div>
+            <ul>
+                {% for link in nav_bar %}
+                    <li>
+                        <a href="{% url link.url_name %}">{{ link.title }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+        <img class="logo" src='{% static "main/images/logo.svg" %}'></img>
+    </div>
+</html>
+{% block script %}
+{% endblock %}
+<style>
+    * {
+        margin: 0px;
+    }
+</style>

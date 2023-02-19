@@ -18,22 +18,22 @@
     box-shadow: 0px 1px 5px 0px grey;
 }
 .currency-td {
-    border-radius: 15px;
-    color: black;
-    border: 1px solid #adb1b8; /* Граница вокруг ячеек */
-    display: flex;
-    align-items: center;
-    font-size: 12px;
-    width: 95%;
-    margin: 2px auto;
-    box-sizing: border-box;
-    font-weight: bold;
-    -webkit-touch-callout: none; /* iOS Safari */
-    -webkit-user-select: none; /* Safari */
-    -khtml-user-select: none; /* Konqueror HTML */
-    -moz-user-select: none; /* Old versions of Firefox */
-    -ms-user-select: none; /* Internet Explorer/Edge */
-    user-select: none;
+  border-radius: 15px;
+  color: black;
+  border: 1px solid #adb1b8; /* Граница вокруг ячеек */
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  width: 95%;
+  margin: 2px auto;
+  box-sizing: border-box;
+  font-weight: bold;
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none; /* Safari */
+  -khtml-user-select: none; /* Konqueror HTML */
+  -moz-user-select: none; /* Old versions of Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none;
 	cursor: pointer;
 }
 table tbody tr{
@@ -98,7 +98,7 @@ table tbody tr{
     -moz-user-select: none; /* Old versions of Firefox */
     -ms-user-select: none; /* Internet Explorer/Edge */
     user-select: none;
-	cursor: pointer;
+	  cursor: pointer;
 }
 .custom-radio:checked+label::before {
     border-color: #0b76ef;
@@ -249,4 +249,7 @@ input[type="number"]::-webkit-inner-spin-button {
     transform: scaleY(0.1);
     background: transparent;
   }
+}
+.exchange_icon {
+  width: 50px;
 }

@@ -43,26 +43,6 @@ class ReceiveGiveCurrencies(models.Model):
     give = models.ForeignKey(GiveCurrency, on_delete=models.CASCADE, null=False)
     is_active = models.BooleanField(default=False, null=False)
 
-    def get_receive(self):
-        return self.receive.currency_name
-
-    def get_give(self):
-        return self.give.currency_name
-
     def __str__(self) -> str:
         return f'{self.receive.currency_name} {self.give.currency_name}'
 
-""" class Status(models.Model):
-
-    status_name = models.CharField(max_length=32) """
-
-""" class Order(models.Model):
-
-    order_date = models.DateTimeField()
-    address = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True)
-    give_sum = models.CharField(max_length=32)
-    receive_sum = models.CharField(max_length=32)
-    give_payment_method = models.CharField(max_length=128)
-    receive_payment_method = models.CharField(max_length=128)
-    status = models.ForeignKey(Status, on_delete=models.SET_NULL, null=True)
-    email = models.CharField(max_length=255) """

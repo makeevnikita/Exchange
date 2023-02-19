@@ -1,0 +1,35 @@
+{% load static %}
+<html>
+    <meta charset="UTF-8"/>
+    <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:wght@300&display=swap" rel="stylesheet"> 
+        <title>{{ title }}</title>
+    </head>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:wght@300&display=swap" rel="stylesheet"> 
+    <header>
+        <div class='header-content'>
+            <img class="logo" src='{% static "main/images/logo.svg" %}'></img>
+            <div class="nav-bar">
+                <ul>
+                    {% for link in nav_bar %}
+                        <li>
+                            <a href="{% url link.url_name %}">{{ link.title }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            
+        </div>
+    </header>
+    <link rel="stylesheet" href="{% static 'main/css/header.css' %}"/>
+    {% block content %}
+    {% endblock %}
+</html>
+<style>
+    
+    * {
+        margin: 0px;
+    }
+</style>

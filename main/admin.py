@@ -1,6 +1,4 @@
 from django.contrib import admin
-from django import forms
-
 from .models import *
 
 @admin.register(TokenStandart)
@@ -17,4 +15,4 @@ class GiveCurrencyAdmin(admin.ModelAdmin):
 
 @admin.register(ReceiveGiveCurrencies)
 class ReceiveGiveCurrenciesAdmin(admin.ModelAdmin):
-    list_display = ('get_give', 'get_receive', 'is_active')
+    pass

@@ -11,21 +11,19 @@ jQuery('#give-table').children().children('.currency-td').click(function(event) 
   }else{
     td = event.target
   }
-  payment_method = td.getAttribute('payment-method')
-  currency_name = td.textContent.replace(/\s/g, "")
-  currency_id = td.getAttribute('currency-id')
-
-  jQuery('#give-currency-name-short').text(td.getAttribute('currency-name-short'))
-
-  let table = ''
+  
+  currency_id = td.getAttribute('id')
+  
+  jQuery('#receive-table').children().children().css('display', 'none')
   for (const [key, value] of Object.entries(receive_give_currency_list)) {
     if (value['give_id'] == currency_id) {
-      table += `<tr><td class="currency-td" currency-id="${value['receive_id']}"` +
-      `payment-method="${value['receive__category_payment_method__id']}"` +
-      `currency-name-short="${value['receive__currency_name_short']}">` +
-      `<img src="${MEDIA_URL + value['receive__image']}">${value['receive__currency_name']}</td></tr>`
+      jQuery('#receive-table').find(`td#${value['receive_id']}.currency-td`).css('display', 'flex')
     }
   }
+
+  payment_method = td.getAttribute('payment-method')
+  currency_name = td.textContent.replace(/\s/g, "")
+
   if (payment_method == '1') {
     jQuery('#give-bank-card-form').prop('hidden', false)
     jQuery('#give-online-wallet').prop('hidden', true)
@@ -35,12 +33,12 @@ jQuery('#give-table').children().children('.currency-td').click(function(event) 
   }
   if (payment_method == '2') {
     jQuery('#give-networks-body').empty()
-    for (const [key, value] of Object.entries(give_token_standart_list)) {
+    for (const [key, value] of Object.entries(give_tokens)) {
       if (value['give_id'] == currency_id) {
       let network = '<div class="network">' +
-      `<input id="network-choice${value['give__token_standart__id']}" class="custom-radio" name="networks_1" ` +
-      `type="radio" value="${value['give__token_standart__token_standart']}" undefined="">` +
-      `<label for="network-choice${value['give__token_standart__id']}">${value['give__token_standart__token_standart']}</label>`
+      `<input id="gnetwork-choice${value['give__token_standart__id']}" class="custom-radio" name="give_networks" ` +
+      `type="radio" value="${value['give__token_standart__token_standart']}">` +
+      `<label for="gnetwork-choice${value['give__token_standart__id']}">${value['give__token_standart__token_standart']}</label>`
       '</div>'
       jQuery('#give-networks-body').append(network)
       }
@@ -50,6 +48,7 @@ jQuery('#give-table').children().children('.currency-td').click(function(event) 
     jQuery('#give-crypto-form').prop('hidden', false)
     
     jQuery('#give_input_crypto').attr('placeholder', currency_name + ' адрес кошелька')
+    jQuery('#give-networks-body').children(':first').children('label').trigger('click')
   }
   if (payment_method == '3') {
     jQuery('#give-bank-card-form').prop('hidden', true)
@@ -58,8 +57,7 @@ jQuery('#give-table').children().children('.currency-td').click(function(event) 
 
     jQuery('#give-input-online-wallet').attr('placeholder', currency_name + ' адрес кошелька')
   }
-  jQuery('#receive-table').html(table)
-  jQuery('#receive-table').children(':first').children(':first').trigger('click');
+  jQuery('#receive-table .currency-td[style*="display: flex"]:first').trigger('click')
 });
 
 
@@ -74,14 +72,11 @@ jQuery('#receive-table').click(function(event) {
   }else {
     return
   }
-  if (jQuery(td).hasClass('selected')){
-    return
-  }
   jQuery(td).addClass('selected').parent().siblings().children().removeClass('selected');
 
   payment_method = td.getAttribute('payment-method')
   currency_name = td.textContent.replace(/\s/g, "")
-  currency_id = td.getAttribute('currency-id')
+  id = td.getAttribute('id')
 
   jQuery('#receive-currency-name-short').text(td.getAttribute('currency-name-short'))
 
@@ -94,12 +89,13 @@ jQuery('#receive-table').click(function(event) {
   }
   if (payment_method == '2') {
     jQuery('#receive-networks-body').empty()
-    for (const [key, value] of Object.entries(receive_token_standart_list)) {
-      if (value['receive_id'] == currency_id) {
+    for (const [key, value] of Object.entries(receive_tokens)) {
+      if (value['receive_id'] == id) {
+        
         let network = '<div class="network">' +
-        `<input id="network-choice${value['receive__token_standart__id']}" class="custom-radio" name="networks_1" ` +
+        `<input id="rnetwork-choice${value['receive__token_standart__id']}" class="custom-radio" name="receive_networks" ` +
         `type="radio" value="${value['receive__token_standart__token_standart']}" undefined="">` +
-        `<label for="network-choice${value['receive__token_standart__id']}">${value['receive__token_standart__token_standart']}</label>`
+        `<label for="rnetwork-choice${value['receive__token_standart__id']}">${value['receive__token_standart__token_standart']}</label>`
         '</div>'
         jQuery('#receive-networks-body').append(network)
       }
@@ -109,6 +105,7 @@ jQuery('#receive-table').click(function(event) {
     jQuery('#receive-crypto-form').prop('hidden', false)
 
     jQuery('#receive_input_crypto').attr('placeholder', currency_name + ' адрес кошелька')
+    jQuery('#receive-networks-body').children(':first').children('label').trigger('click')
   }
   if (payment_method == '3') {
     jQuery('#receive-bank-card-form').prop('hidden', true)
@@ -123,9 +120,10 @@ jQuery('#receive-table').click(function(event) {
 function update_rates() {
 
   if (Object.keys(exchange_rates_dict).length == 0) {
+    console.log('FAIL')
     return
   }
-  
+  console.log('UPDATE')
   give_currency_name_short = jQuery('#give-table').children().children('.currency-td.selected')[0].getAttribute('currency-name-short')
   receive_currency_name_short = jQuery('#receive-table').children().children('.currency-td.selected')[0].getAttribute('currency-name-short')
   if (give_currency_name_short == 'RUB' && receive_currency_name_short != 'RUB') {
@@ -148,5 +146,50 @@ function update_rates() {
 
   jQuery('.rate-span').css('display', 'flex')
   jQuery('.middle').css('display', 'none')
-  
 }
+jQuery('#receive-input-sum').on('input', function(e) {
+  if (e.target.value == 0) {
+    jQuery('#give-input-sum').val('')
+    return
+  }
+  give_currency_name_short = jQuery('#give-table').children().children('.currency-td.selected')[0].getAttribute('currency-name-short')
+  receive_currency_name_short = jQuery('#receive-table').children().children('.currency-td.selected')[0].getAttribute('currency-name-short')
+  
+  if (receive_currency_name_short == 'RUB' && give_currency_name_short != 'RUB') {
+    rate = exchange_rates_dict[give_currency_name_short] * exchange_rates_dict['RUB']
+    sum = e.target.value / rate
+    jQuery('#give-input-sum').val(Math.round(sum * 100000000) / 100000000)
+  }
+  else if (receive_currency_name_short != 'RUB' && give_currency_name_short == 'RUB') {
+    rate = exchange_rates_dict[receive_currency_name_short] * exchange_rates_dict['RUB']
+    sum = e.target.value * rate
+    jQuery('#give-input-sum').val(Math.round(sum * 100) / 100)
+  }
+  else if (receive_currency_name_short != 'RUB' && give_currency_name_short != 'RUB') {
+    sum = exchange_rates_dict[receive_currency_name_short] / exchange_rates_dict[give_currency_name_short]
+    jQuery('#give-input-sum').val((Math.round(sum * 100000000) / 100000000) * e.target.value)
+  }
+});
+jQuery('#give-input-sum').on('input', function(e) {
+  if (e.target.value == 0) {
+    jQuery('#receive-input-sum').val('')
+    return
+  }
+  give_currency_name_short = jQuery('#give-table').children().children('.currency-td.selected')[0].getAttribute('currency-name-short')
+  receive_currency_name_short = jQuery('#receive-table').children().children('.currency-td.selected')[0].getAttribute('currency-name-short')
+  
+  if (receive_currency_name_short == 'RUB' && give_currency_name_short != 'RUB') {
+    rate = exchange_rates_dict[give_currency_name_short] * exchange_rates_dict['RUB']
+    sum = e.target.value * rate
+    jQuery('#receive-input-sum').val(Math.round(sum * 100) / 100)
+  }
+  else if (receive_currency_name_short != 'RUB' && give_currency_name_short == 'RUB') {
+    rate = exchange_rates_dict[receive_currency_name_short] * exchange_rates_dict['RUB']
+    sum = e.target.value / rate
+    jQuery('#receive-input-sum').val(Math.round(sum * 100000000) / 100000000)
+  }
+  else if (receive_currency_name_short != 'RUB' && give_currency_name_short != 'RUB') {
+    sum = exchange_rates_dict[give_currency_name_short] / exchange_rates_dict[receive_currency_name_short]
+    jQuery('#receive-input-sum').val((Math.round((sum * 100000000)) * e.target.value) / 100000000)
+  }
+});
