@@ -1,8 +1,7 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import JsonResponse
 import json
 from django.core.cache import cache
-from django.middleware.csrf import get_token
 from . import services
 from cryptosite.settings import MEDIA_URL
 from django.core.cache import cache
@@ -59,11 +58,27 @@ async def get_exchange_rate(request):
     else:
         return JsonResponse({'rates': json.dumps(rates)}, safe=False, json_dumps_params={'ensure_ascii': False})
 
-def start_exchange(request):
+async def start_exchange(request):
     
     if (request.POST):
+        
+        order_number = await services.create_new_order(
+            give_sum=request.POST['give_sum'],
+            receive_sum=request.POST['receive_sum'],
+            give_payment_method_id=request.POST['give_payment_method_id'],
+            receive_payment_method_id=request.POST['receive_payment_method_id'],
+            give_token_standart_id=request.POST['give_token_standart_id'],
+            receive_token_standart_id=request.POST['receive_token_standart_id'],
+            give_name=request.POST['give_name'],
+            give_address=request.POST['give_address'],
+            receive_address=request.POST['receive_address'])
 
-        print(f"\f\f{request.POST['give_coin']}")
-        print(f"\f\f{request.POST['receive_coin']}")
-
-        return render(request=request, template_name='main/exchange_from.html')
+        return JsonResponse({'link': 'start_exchange/exchange/%s' % order_number})
+    
+async def exchange(request, random_string):
+    print(f'\f\f{random_string}/\f\f')
+    order = await services.get_order(random_string)
+    print(order.give.currency_name)
+    context = {'order': order, 
+               'MEDIA_URL': MEDIA_URL}
+    return render(request=request, template_name='main/exchange.html', context=context)

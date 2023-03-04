@@ -16,3 +16,11 @@ class GiveCurrencyAdmin(admin.ModelAdmin):
 @admin.register(ReceiveGiveCurrencies)
 class ReceiveGiveCurrenciesAdmin(admin.ModelAdmin):
     pass
+
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    pass
+
+@admin.register(ReceiveAddress)
+class ReceiveAddressAdmin(admin.ModelAdmin):
+    pass

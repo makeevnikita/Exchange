@@ -105,19 +105,6 @@
           </div>
           <div id="give-crypto-form">
             <div id="give-networks-body" class="networks_body">
-              {% for token in give_token_list %}
-              <div class="network">
-                <input id="{{token.give__token_standart__id}}" class="custom-radio" name="networks_1"
-                type="radio" value="{{token.give__token_standart__token_standart}}" undefined="">
-                <label for="{{token.give__token_standart__id}}">{{token.give__token_standart__token_standart}}</label>
-                </div>
-              {% endfor %}
-                  
-            </div>
-            <div class="give_input_wallet">
-              <div>
-                <input id='give_input_crypto' min="28" max="100">
-              </div>
             </div>
           </div>
           <div id="give-bank-card-form">
@@ -125,7 +112,7 @@
               <input id="give-input-name" placeholder="ФИО отправителя">
             </div>
             <div>
-              <input id="give-input-bank-card" type="number" min="16" max="18">
+              <input id="give-input-bank-card" type="number">
               <label class="label-length">от 16 до 18 цифр</label>
             </div>
           </div>
@@ -148,7 +135,7 @@
             </div>
             <div class="receive_input_wallet">
               <div>
-                <input id='receive_input_crypto' min="28" max="100">
+                <input id='receive_input_crypto'>
               </div>
             </div>
           </div>
@@ -157,7 +144,7 @@
               <input id="receive-input-name" placeholder="ФИО отправителя">
             </div>
             <div>
-              <input id="receive-input-bank-card" type="number" min="16" max="18">
+              <input id="receive-input-bank-card" type="number">
               <label class="label-length">от 16 до 18 цифр</label>
             </div>
           </div>
@@ -167,9 +154,9 @@
             </div>
           </div>
         </div>
+        <button class="start-exchange" onclick="show_model()">Начать обмен</button>
       </div>
     </div>
-    <input onclick="start_exchange()" type="button" style='width: 50%; height: 50px;'>Начать обмен</input>
   </div>
   <div id="exchange_ways" style="display: none;">{{ exchange_ways }}</div>
   <div id="give_tokens" style="display: none;">{{ give_tokens }}</div>
@@ -194,6 +181,7 @@
               </div>
               <div class="check-claim-reqs">
                 <div id="address"></div>
+                <div id="name"></div>
               </div>
             </div>
             <div class="check-claim-side to">
@@ -205,13 +193,14 @@
               </div>
               <div class="check-claim-reqs">
                 <div id="address"></div>
+                <div id="name"></div>
               </div>
             </div>
           </div>
         </div>
         <div class="bot">
-          <input type="button" id="accept" value="Перейти к оплате" onclick="alert('go')">
-          <input type="button" id="cancel" value="Отмена" onclick="alert('go')">
+          <input type="button" id="accept" value="Перейти к оплате" onclick="start()">
+          <input type="button" id="cancel" value="Отмена" onclick="cancel()">
         </div>
       </div>
     </div>
@@ -375,6 +364,17 @@
       justify-content: center;
     }
     .bot input:hover {
+      background-color: rgb(255, 136, 0);
+    }
+    .start-exchange {
+      border-radius: 15px;
+      font-size: 24px;
+      background-color: #f7a600;
+      border: #242629 1px solid;
+      height: 50px;
+      width: 100%;
+    }
+    .start-exchange:hover {
       background-color: rgb(255, 136, 0);
     }
     </style>

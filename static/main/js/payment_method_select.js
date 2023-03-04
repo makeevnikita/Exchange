@@ -47,7 +47,6 @@ jQuery('#give-table').children().children('.currency-td').click(function(event) 
     jQuery('#give-online-wallet').prop('hidden', true)
     jQuery('#give-crypto-form').prop('hidden', false)
     
-    jQuery('#give_input_crypto').attr('placeholder', currency_name + ' адрес кошелька')
     jQuery('#give-networks-body').children(':first').children('label').trigger('click')
   }
   if (payment_method == '3') {
