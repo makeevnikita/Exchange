@@ -21,7 +21,6 @@ function get_exchange_rates() {
             update_rates()
         }
     });
-    
     setTimeout(get_exchange_rates, 60000)
 }
 function getCookie(name) {
