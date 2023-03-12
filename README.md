@@ -1,3 +1,7 @@
+# Обменник валюты
+Можно обменивать крипту на рубли и обратно.
+# Из чего сделано
+Бэк: Django1
 # Как запустить проект
 ```mkdir Exchange-clone``` создать пустую папку  
 ```cd Exchange-clone``` перейти в папку  
@@ -5,6 +9,7 @@
 ```python3 -m venv venv``` создать виртуальное окружение  
 ```source venv/bin/activate``` активировать виртуальное окружение  
 ```pip install uvicorn``` установить ASGI-сервер  
+```pip install django``` установить Django  
 ```uvicorn Exchange.asgi:application``` запустить приложение  
 
 # Структура проекта  
