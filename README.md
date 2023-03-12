@@ -8,9 +8,10 @@
 ```git clone https://github.com/makeevnikita/Exchange.git``` клонировать репозиторий  
 ```python3 -m venv venv``` создать виртуальное окружение  
 ```source venv/bin/activate``` активировать виртуальное окружение  
-```pip install uvicorn``` установить ASGI-сервер  
+```pip install daphne``` установить ASGI-сервер  
+```pip install httpx``` библиотека для отправки асинхронных HTTP-запросов
 ```pip install django``` установить Django  
-```uvicorn Exchange.asgi:application``` запустить приложение  
+```daphne Exchange.asgi:application``` запустить приложение  
 
 # Структура проекта  
 +cryptosite/  
