@@ -47,3 +47,5 @@
 +--templates/  
 +db.sqlite3  
 +manage.py  
+# Схема базы данных
+TODO
