@@ -1,0 +1,31 @@
+# Как запустить проект
+TODO
+# Структура проекта  
++cryptosite/  
++--cryptosite/  
++--------asgi.py  
++--------settings.py  
++--------urls.py  
++--------wsgi.py  
++--main/  
++--------migrations/  
++--------templates/    
++--------admin.py  
++--------exceptions.py  
++--------models.py  
++--------services.py  
++--------tests.py  
++--------urls.py  
++--------views.py  
++--media/  
++--------images/  
++---------------coins/  
++--static/  
++--------admin/  
++--------main/  
++---------------css/  
++---------------images/  
++---------------js/  
++--templates/  
+db.sqlite3  
+manage.py  
