@@ -45,5 +45,5 @@
 +---------------images/  
 +---------------js/  
 +--templates/  
-db.sqlite3  
-manage.py  
++db.sqlite3  
++manage.py  
