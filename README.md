@@ -77,6 +77,7 @@ NetworkAPI <|-- NullAPI
 class ExchangeClient {
   CurrenciesSource crypto_source
   NetworkAPI usd_source
+  +get_rate
 }
 ExchangeClient ..> CurrenciesSource
 ExchangeClient ..> NetworkAPI
