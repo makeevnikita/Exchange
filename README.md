@@ -52,9 +52,14 @@
 TODO
 # Диаграмма exchangenetwork.py
 Этот модуль служит для того, чтобы вытягивать курсы валют из сторонних API.  
+---
+title: Bank example
+---
 classDiagram
-class NetworkAPI {
-  +get_rate(currency_name)
-  +check_status_code(response)
-  +output_error(response)
-}
+    class BankAccount
+    BankAccount : +String owner
+    BankAccount : +Bigdecimal balance
+    BankAccount : +deposit(amount)
+    BankAccount : +withdrawal(amount)
+
+
