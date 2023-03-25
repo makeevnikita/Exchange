@@ -56,8 +56,8 @@ TODO
 classDiagram
 class NetworkAPI {
   <<Abstract>>
-  +get_rate(currency_name)
-  +check_status_code(response)
+  +get_rate(currency_name)*
+  +check_status_code(response)*
   +output_error(response)
 }
 class PoloniexAPI {
@@ -83,7 +83,7 @@ ExchangeClient ..> CurrenciesSource
 ExchangeClient ..> NetworkAPI
 class CurrenciesSource {
   <<Interface>>
-  +get_currency_list()
+  +get_currency_list()*
 }
 class CurrenciesFromMYSQL {
   +get_currency_list()
