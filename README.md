@@ -83,10 +83,10 @@ ExchangeClient ..> CurrenciesSource
 ExchangeClient ..> NetworkAPI
 class CurrenciesSource {
   <<Interface>>
-  get_currency_list()
+  +get_currency_list()
 }
 class CurrenciesFromMYSQL {
-  get_currency_list()
+  +get_currency_list()
 }
 CurrenciesSource ..|> CurrenciesFromMYSQL 
 class CentreBankAPI {
