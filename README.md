@@ -30,6 +30,7 @@
 +--------templates/    
 +--------admin.py  
 +--------exceptions.py  
++--------exchangenetwork.py
 +--------models.py  
 +--------services.py  
 +--------tests.py  
@@ -49,3 +50,11 @@
 +manage.py  
 # Схема базы данных
 TODO
+# Диаграмма exchangenetwork.py
+Этот модуль служит для того, чтобы вытягивать курсы валют из сторонних API.  
+classDiagram
+class NetworkAPI {
+  +get_rate(currency_name)
+  +check_status_code(response)
+  +output_error(response)
+}
