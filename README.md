@@ -52,14 +52,44 @@
 TODO
 # Диаграмма exchangenetwork.py
 Этот модуль служит для того, чтобы вытягивать курсы валют из сторонних API.  
----
-title: Bank example
----
+```mermaid
 classDiagram
-    class BankAccount
-    BankAccount : +String owner
-    BankAccount : +Bigdecimal balance
-    BankAccount : +deposit(amount)
-    BankAccount : +withdrawal(amount)
-
-
+class NetworkAPI {
+  <<Abstract>>
+  +get_rate(currency_name)
+  +check_status_code(response)
+  +output_error(response)
+}
+class PoloniexAPI {
+  +RATE_URL
+  +get_rate(currency_name)
+}
+NetworkAPI <|-- PoloniexAPI
+class BitpayAPI {
+  +RATE_URL
+  +get_rate(currency_name)
+}
+NetworkAPI <|-- BitpayAPI
+class NullAPI {
+  +get_rate(currency_name)
+}
+NetworkAPI <|-- NullAPI
+class ExchangeClient {
+  CurrenciesSource crypto_source
+  NetworkAPI usd_source
+}
+ExchangeClient ..> CurrenciesSource
+ExchangeClient ..> NetworkAPI
+class CurrenciesSource {
+  <<Interface>>
+  get_currency_list()
+}
+class CurrenciesFromMYSQL {
+  get_currency_list()
+}
+CurrenciesSource ..|> CurrenciesFromMYSQL 
+class CentreBankAPI {
+  +get_rate()
+}
+NetworkAPI <|-- CentreBankAPI
+```
