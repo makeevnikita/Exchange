@@ -166,7 +166,6 @@
       <div class="modal-content">
         <div class="modal-header">
           <h3 class="modal-title">Подтверждение оплаты</h3>
-          <a href="#close" title="Close" class="close"></a>
         </div>
         <div class="modal-body">    
           <div class="check-claim-content">
@@ -220,28 +219,22 @@
       background-color: #fff;
     } 
     
-    /* свойства модального окна по умолчанию */
+    /* Модальное окно */
     .modal {
-      position: fixed; /* фиксированное положение */
+      position: fixed;
       top: 0;
       right: 0;
       bottom: 0;
       left: 0;
-      background: rgba(0,0,0,0.5); /* цвет фона */
+      background: rgba(0,0,0,0.5);
       z-index: 1050;
-      opacity: 0; /* по умолчанию модальное окно прозрачно */
+      opacity: 0;
       -webkit-transition: opacity 200ms ease-in; 
       -moz-transition: opacity 200ms ease-in;
-      transition: opacity 200ms ease-in; /* анимация перехода */
-      pointer-events: none; /* элемент невидим для событий мыши */
+      transition: opacity 200ms ease-in;
+      pointer-events: none;
       margin: 0;
       padding: 0;
-    }
-    /* при отображении модального окно */
-    .modal:target {
-      opacity: 1; /* делаем окно видимым */
-      pointer-events: auto; /* элемент видим для событий мыши */
-      overflow-y: auto; /* добавляем прокрутку по y, когда элемент не помещается на страницу */
     }
     /* ширина модального окна и его отступы от экрана */
     .modal-dialog {
@@ -249,7 +242,7 @@
       width: auto;
       margin: 10px;
       max-width: 570px;
-      margin: 30px auto; /* для отображения модального окна по центру */
+      margin: 30px auto;
     }
     /* свойства для блока, содержащего контент модального окна */ 
     .modal-content {
@@ -301,7 +294,6 @@
       font-size: 14px;
     }
     }
-    /* свойства для заголовка модального окна */
     .modal-header {
       display: -webkit-box;
       display: -webkit-flex;
@@ -325,26 +317,6 @@
       font-size: 1.25rem;
       font-weight: 500;
     }
-    /* свойства для кнопки "Закрыть" */
-    .close {
-      float: right;
-      font-family: sans-serif;
-      font-size: 24px;
-      font-weight: 700;
-      line-height: 1;
-      color: #000;
-      text-shadow: 0 1px 0 #fff;
-      opacity: .5;
-      text-decoration: none;
-    }
-    /* свойства для кнопки "Закрыть" при нахождении её в фокусе или наведении */
-    .close:focus, .close:hover {
-      color: #000;
-      text-decoration: none;
-      cursor: pointer;
-      opacity: .75;
-    }
-    /* свойства для блока, содержащего основное содержимое окна */
     .modal-body {
     position: relative;
       -webkit-box-flex: 1;
@@ -355,7 +327,6 @@
       overflow: auto;
       word-break: break-all;
     }
-    
     .check-claim-reqs, b{
       font-size: 12px;
     }
@@ -377,5 +348,5 @@
     .start-exchange:hover {
       background-color: rgb(255, 136, 0);
     }
-    </style>
+  </style>
 {% endblock %}

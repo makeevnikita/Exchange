@@ -4,7 +4,9 @@ from django.utils import timezone
 
 
 class TokenStandart(models.Model):
-
+    """
+        Сеть криптовалюты
+    """
     token_standart = models.CharField(max_length=10)
     commission = models.IntegerField(null=False, default=-1)
     
@@ -12,14 +14,23 @@ class TokenStandart(models.Model):
         return self.token_standart
 
 class CategoryPaymentMethod(models.Model):
-
+    """
+        Виды платёжных систем (банк, крипто, онлайн-кошелёк)
+    """
     category_payment_method_name = models.CharField(max_length=255, null=False)
 
     def __str__(self) -> str:
         return self.category_payment_method_name
 
 class GiveCurrency(models.Model):
-
+    """
+        Валюты, которые отдаём клиент
+        currency_name - название платёжно системы   
+        currency_name_short - название валюты кратко 
+        image - логотип платёжной системы
+        category_payment_method - категория платёжной системы (банк, крипто, онлайн-кошелёк)
+        token_standart - сеть криптовалюты
+    """
     currency_name = models.CharField(max_length=150)
     currency_name_short = models.CharField(max_length=10)
     image = models.FileField(upload_to='images/coins/', null=False)
@@ -30,7 +41,14 @@ class GiveCurrency(models.Model):
         return f'{self.currency_name}'
 
 class ReceiveCurrency(models.Model):
-    
+    """
+        Валюты, которые отдаём мы
+        currency_name - название платёжно системы   
+        currency_name_short - название валюты кратко 
+        image - логотип платёжной системы
+        category_payment_method - категория платёжной системы (банк, крипто, онлайн-кошелёк)
+        token_standart - сеть криптовалюты
+    """
     currency_name = models.CharField(max_length=150)
     currency_name_short = models.CharField(max_length=10)
     image = models.FileField(upload_to='images/coins/', null=False)
@@ -41,7 +59,7 @@ class ReceiveCurrency(models.Model):
         return f'{self.currency_name}'
 
 class ReceiveGiveCurrencies(models.Model):
-
+    
     class Meta:
         unique_together = (('receive', 'give'),)
 
@@ -51,8 +69,12 @@ class ReceiveGiveCurrencies(models.Model):
 
     def __str__(self) -> str:
         return f'{self.receive.currency_name} {self.give.currency_name}'
+    def get_receive_currency_name(self):
+        return self.receive.currency_name
+    def get_give_currency_name(self):
+        return self.give.currency_name
 
-class ReceiveAddress(models.Model):
+class AddressTo(models.Model):
     
     """
         Наши кошельки, на которые клиенты переводят свои деньги
@@ -65,10 +87,14 @@ class ReceiveAddress(models.Model):
     currency = models.ForeignKey(ReceiveCurrency, on_delete=models.SET_NULL, null=True)
     token_standart = models.ForeignKey(TokenStandart, on_delete=models.SET_NULL, null=True)
 
+    def __str__(self) -> str:
+        return f'{self.address} {self.token_standart}'
+
 class Order(models.Model):
     """
         Заказы
         number - номер заказа
+        random_string - ссылка на заказ
         date_time - время и дата заказа
         give_sum - сумма, которую отдаёт клиент
         receive_sum - сумма, которую получает клиент
@@ -76,8 +102,10 @@ class Order(models.Model):
         receive - валюта, которую получает клиент
         give_token_standart - сеть криптовалюты, которую отдаёт клиент
         receive_token_standart - сеть криптовалюты, которую получает клиент
-        give_name - имя получателя
-        receive_address - адрес, на которуй клиент кидает свои деньги
+        receive_name - имя получателя
+        receive_address - адрес кошелька получателья
+        address_to - адрес, на которуй клиент кидает свои деньги
+        paid - исполнен ли заказ
     """
     
     number = models.IntegerField(null=False, default=0)
@@ -89,6 +117,10 @@ class Order(models.Model):
     receive = models.ForeignKey(ReceiveCurrency, on_delete=models.SET_NULL, null=True)
     give_token_standart = models.ForeignKey(TokenStandart, on_delete=models.SET_NULL, null=True, related_name='give_token_standart')
     receive_token_standart = models.ForeignKey(TokenStandart, on_delete=models.SET_NULL, null=True, related_name='receive_token_standart')
-    give_name = models.CharField(max_length=255, null=False, default='Без имени')
-    give_address = models.CharField(max_length=255, null=False, default='Без адреса')
-    receive_address = models.ForeignKey(ReceiveAddress, on_delete=models.SET_NULL, null=True)
+    receive_name = models.CharField(max_length=255, null=False, default='Без имени')
+    receive_address = models.CharField(max_length=255, null=False, default='Без адреса')
+    address_to = models.ForeignKey(AddressTo, on_delete=models.SET_NULL, null=True)
+    paid = models.BooleanField(null=False, default=False)
+
+    def __str__(self) -> str:
+        return f'Заказ {self.number}'

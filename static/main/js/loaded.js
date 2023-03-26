@@ -154,8 +154,8 @@ function start() {
     data['receive_payment_method_id'] = jQuery('#receive-table .selected')[0].id
     data['give_token_standart_id'] = 1
     data['receive_token_standart_id'] = 1
-    data['give_name'] = jQuery('.check-claim-side.from .check-claim-reqs').children('#name')[0].innerHTML
-    data['give_address'] = null
+    data['receive_name'] = jQuery('#receive-input-name').val()
+    data['receive_address'] = null
 
     give_payment_method_id = jQuery('#give-table .selected')[0].getAttribute('payment-method')//Споособ оплаты
     if (give_payment_method_id == 1) {
@@ -187,7 +187,6 @@ function start() {
         dataType: 'json',
         data: data,
         success: function(response){
-            console.log(response)
             window.location = response['link']
         }
     });

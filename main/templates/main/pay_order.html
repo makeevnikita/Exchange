@@ -2,11 +2,11 @@
 {% load static %}
 {% block header %}
   <link rel="stylesheet" href="{% static 'main/css/index.css' %}" type="text/css">
-  <link rel="stylesheet" href="{% static 'main/css/exchange.css' %}" type="text/css">
+  <link rel="stylesheet" href="{% static 'main/css/pay_order.css' %}" type="text/css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <script src="/static/admin/js/vendor/jquery/jquery.js"></script>
-  <title>{{ titile }}</title>
+  <title>Заказ {{ order.number }}</title>
 {% endblock %}
 
 {% block content %}
@@ -14,7 +14,12 @@
   <div class="content">
     <div class="top">
       <h1 style="text-align: center;">Заявка {{ order.number }}</h1>
-      <div class="timer" id="timer" style="text-align: center;">17:38</div>
+      <div class="timeout_wrap">
+        <div id="timeout">Время вышло</div>
+      </div>
+      <div class="timer" id="timer" style="display: flex;justify-content: center;">
+        <div id="minutes">{{ minutes }}</div>:<div id="seconds">{{ seconds }}</div>
+      </div>
       <div class="check-claim-content">
         <div class="check receive">
           <div id="icon"><img src="{{ MEDIA_URL }}{{ order.give.image }}"></div>
@@ -64,9 +69,36 @@
         По всем вопросам, или в случае задержки обмена, обращайтесь в техническую поддержку.</p>
     </div>
     <div class="bottom">
-      <button type="submit">Я оплатил</button>
-      <button type="submit">Отмена</button>
+      <button id="confirm" type="submit">Я оплатил</button>
+      <button id="cancel" type="submit">Отмена</button>
     </div>
   </div>
 </div>
+<div id="openModal" class="modal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title"></h3>
+      </div>
+      <div class="modal-body">
+        <p class="note-modal">
+          <br>
+          <br>
+          После отправки средства не всегда поступают мгновенно.
+          <br>
+          <br>
+          Зачисление средств на наш счёт может занять некоторое время.
+          <br>
+          <br>
+        </p>
+      </div>
+      <div class="modal-footer">
+        <input type="button" id="close" value="Закрыть" onclick="closeModal()">
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block script %}
+  <script type="text/javascript" src="{% static 'main/js/pay_order.js'%}"></script>
 {% endblock %}
