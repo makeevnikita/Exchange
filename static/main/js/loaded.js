@@ -76,7 +76,8 @@ function show_model() {
         }   
     }
     else if (give_payment_method_id == 2) {//Криптовалюта
-        give_payment_method_name += ` <b>сеть: ${jQuery('#give-networks-body .custom-radio:checked+label')[0].innerHTML}</b>`
+        network = jQuery('#give-networks-body .custom-radio:checked+label')[0]
+        give_payment_method_name += network ? ` <b>сеть: ${jQuery('#give-networks-body .custom-radio:checked+label')[0].innerHTML}</b>` : ''
     }
     else if (give_payment_method_id == 3) {//Онлайн кошелёк
         if (jQuery('#give-input-online-wallet').val() == '') {
@@ -124,10 +125,8 @@ function show_model() {
             jQuery('#receive_input_crypto').css('border', '1px solid red')
             valid = false
         } else {
-            if (typeof jQuery('#receive-networks-body .custom-radio:checked+label')[0] != 'undefined') {
-                receive_payment_method_name += ` <b>сеть: ${jQuery('#receive-networks-body .custom-radio:checked+label')[0].innerHTML}</b> `
-            }
-            jQuery('.check-claim-side.to .check-claim-reqs').children('#address')[0].innerHTML = jQuery('#receive_input_crypto').val()
+            network = jQuery('#receive-networks-body .custom-radio:checked+label')[0]
+            receive_payment_method_name += network ? ` <b>сеть: ${jQuery('#receive-networks-body .custom-radio:checked+label')[0].innerHTML}</b> ` : ''
         } 
     }
     else if (receive_payment_method_id == 3) {//Онлайн кошелёк
@@ -144,6 +143,7 @@ function show_model() {
         jQuery('.modal').css('pointer-events', 'all')
     }
 }
+
 function start() {
     jQuery('#accept').css('pointer-events', 'none')
     var data = {}
@@ -163,7 +163,8 @@ function start() {
         data['give_address'] = jQuery('#give-input-bank-card').val()
     } else if (give_payment_method_id == 2) {
         //Криптовалюта
-        data['give_token_standart_id'] = jQuery('#give-networks-body .custom-radio:checked+label')[0].closest('DIV').children[0].id.match(/(\d+)/)[0]
+        token_standart = jQuery('#give-networks-body .custom-radio:checked+label')[0].closest('DIV').children[0].id.match(/(\d+)/)[0]
+        data['give_token_standart_id'] = token_standart ? token_standart : ''
     } else if (give_payment_method_id == 3) {
         //Онлайн кошелёк
         data['give_address'] = jQuery('#give-input-online-wallet').val()
@@ -175,10 +176,11 @@ function start() {
         data['receive_address'] = jQuery('#receive-input-bank-card').val()
     } else if (receive_payment_method_id == 2) {
         //Криптовалюта
+        token_standart = jQuery('#receive-networks-body .custom-radio:checked+label')[0].closest('DIV').children[0].id.match(/(\d+)/)[0]
+        data['receive_token_standart_id'] = token_standart ? token_standart : '' 
         data['receive_address'] = jQuery('#receive_input_crypto').val()
     } else if (receive_payment_method_id == 3) {
         //Онлайн кошелёк
-        data['receive_token_standart_id'] = jQuery('#receive-networks-body .custom-radio:checked+label')[0].closest('DIV').children[0].id.match(/(\d+)/)[0]
         data['receive_address'] = jQuery('#receive-input-online-wallet').val()
     }
     jQuery.ajax({

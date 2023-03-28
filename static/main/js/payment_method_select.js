@@ -14,15 +14,17 @@ jQuery('#give-table').children().children('.currency-td').click(function(event) 
   
   currency_id = td.getAttribute('id')
   
+  // Скрываем все ячейки таблицы receive-table, а потом отображаем 
   jQuery('#receive-table').children().children().css('display', 'none')
+  // Потом отображаем нужные
   for (const [key, value] of Object.entries(receive_give_currency_list)) {
     if (value['give_id'] == currency_id) {
       jQuery('#receive-table').find(`td#${value['receive_id']}.currency-td`).css('display', 'flex')
     }
   }
 
-  payment_method = td.getAttribute('payment-method')
-  currency_name = td.textContent.replace(/\s/g, "")
+  payment_method = td.getAttribute('payment-method')// Валюта, которую отдаёт клиент
+  currency_name = td.textContent.replace(/\s/g, "")// Название валюты, которую отдаёт клиент
 
   if (payment_method == '1') {
     jQuery('#give-bank-card-form').prop('hidden', false)

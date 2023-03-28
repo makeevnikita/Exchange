@@ -4,9 +4,11 @@ from django.utils import timezone
 
 
 class TokenStandart(models.Model):
+
     """
         Сеть криптовалюты
     """
+
     token_standart = models.CharField(max_length=10)
     commission = models.IntegerField(null=False, default=-1)
     
@@ -14,15 +16,18 @@ class TokenStandart(models.Model):
         return self.token_standart
 
 class CategoryPaymentMethod(models.Model):
+
     """
         Виды платёжных систем (банк, крипто, онлайн-кошелёк)
     """
+
     category_payment_method_name = models.CharField(max_length=255, null=False)
 
     def __str__(self) -> str:
         return self.category_payment_method_name
 
 class GiveCurrency(models.Model):
+
     """
         Валюты, которые отдаём клиент
         currency_name - название платёжно системы   
@@ -31,6 +36,7 @@ class GiveCurrency(models.Model):
         category_payment_method - категория платёжной системы (банк, крипто, онлайн-кошелёк)
         token_standart - сеть криптовалюты
     """
+
     currency_name = models.CharField(max_length=150)
     currency_name_short = models.CharField(max_length=10)
     image = models.FileField(upload_to='images/coins/', null=False)
@@ -41,6 +47,7 @@ class GiveCurrency(models.Model):
         return f'{self.currency_name}'
 
 class ReceiveCurrency(models.Model):
+
     """
         Валюты, которые отдаём мы
         currency_name - название платёжно системы   
@@ -48,7 +55,9 @@ class ReceiveCurrency(models.Model):
         image - логотип платёжной системы
         category_payment_method - категория платёжной системы (банк, крипто, онлайн-кошелёк)
         token_standart - сеть криптовалюты
+        address - адрес, на который клиент переводит валюту
     """
+
     currency_name = models.CharField(max_length=150)
     currency_name_short = models.CharField(max_length=10)
     image = models.FileField(upload_to='images/coins/', null=False)
@@ -57,6 +66,22 @@ class ReceiveCurrency(models.Model):
 
     def __str__(self) -> str:
         return f'{self.currency_name}'
+    
+class AddressTo(models.Model):
+    
+    """
+        Наши кошельки, на которые клиенты переводят свои деньги
+        address - адрес, на который клиент переводит деньги
+        currency - валюта которую отдаст клиент
+        token_standart - сеть валюты
+    """
+    
+    address = models.CharField(max_length=255, null=False, default='Без адреса')
+    currency = models.ForeignKey(GiveCurrency, on_delete=models.SET_NULL, null=True)
+    token_standart = models.ForeignKey(TokenStandart, on_delete=models.SET_NULL, null=True)
+
+    def __str__(self) -> str:
+        return f'{self.address}'
 
 class ReceiveGiveCurrencies(models.Model):
     
@@ -74,23 +99,8 @@ class ReceiveGiveCurrencies(models.Model):
     def get_give_currency_name(self):
         return self.give.currency_name
 
-class AddressTo(models.Model):
-    
-    """
-        Наши кошельки, на которые клиенты переводят свои деньги
-        address - адрес, на который клиент переводит деньги
-        currency - валюта
-        token_standart - сеть криптовалюты
-    """
-    
-    address = models.CharField(max_length=255, null=False, default='Без адреса')
-    currency = models.ForeignKey(ReceiveCurrency, on_delete=models.SET_NULL, null=True)
-    token_standart = models.ForeignKey(TokenStandart, on_delete=models.SET_NULL, null=True)
-
-    def __str__(self) -> str:
-        return f'{self.address} {self.token_standart}'
-
 class Order(models.Model):
+    
     """
         Заказы
         number - номер заказа
@@ -103,7 +113,7 @@ class Order(models.Model):
         give_token_standart - сеть криптовалюты, которую отдаёт клиент
         receive_token_standart - сеть криптовалюты, которую получает клиент
         receive_name - имя получателя
-        receive_address - адрес кошелька получателья
+        receive_address - адрес кошелька получателя
         address_to - адрес, на которуй клиент кидает свои деньги
         paid - исполнен ли заказ
     """

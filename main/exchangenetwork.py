@@ -1,6 +1,12 @@
+from .services import get_short_names_of_coins
+
 import httpx
 import traceback
-from .services import get_short_names_of_coins
+
+class GetRateError(Exception):
+    
+    def __init__(self, __name__, response) -> None:
+        super().__init__(f'{__name__}: Failed to get rate. URL: {response.url}. Status code: {response.status_code}')
 
 class NetworkAPI:
     
@@ -32,11 +38,9 @@ class PoloniexAPI(NetworkAPI):
                 if (cls.check_status_code(response) != False):
                     return response.json()['markPrice']
                 
-                raise
+                raise GetRateError(cls.__name__, response)
             except Exception as exception:
-                print(exception)
-                print(''.join(traceback.format_tb(exception.__traceback__)))
-                cls.output_error(response)
+                raise exception
 
 class BitpayAPI(NetworkAPI):
 
@@ -51,11 +55,9 @@ class BitpayAPI(NetworkAPI):
             if (cls.check_status_code(response) != False):
                 return response.json()['data']['rate']
             
-            raise
+            raise GetRateError(cls.__name__, response)
         except Exception as exception:
-            print(exception)
-            print(''.join(traceback.format_tb(exception.__traceback__)))
-            cls.output_error(response)
+            raise exception
 
 class CurrenciesSource:
 
@@ -80,11 +82,9 @@ class CentreBankAPI(NetworkAPI):
             if (cls.check_status_code(response) != False):
                     return response.json()['Valute']['USD']['Value']
             
-            raise
+            raise GetRateError(cls.__name__, response)
         except Exception as exception:
-            print(exception)
-            print(''.join(traceback.format_tb(exception.__traceback__)))
-            cls.output_error(response)
+            raise exception
 
 class NullAPI(NetworkAPI):
 
@@ -107,14 +107,10 @@ class ExchangeClient:
         
         for currency in currencies:
             for api in api_list:
-                try:
-                    rate = await api(currency)
-                    if (rate != None):
-                        rates[currency] = float(rate)
-                        break
-                except Exception as exception:
-                    print(exception)
-                    print(''.join(traceback.format_tb(exception.__traceback__)))
+                rate = await api(currency)
+                if (rate != None):
+                    rates[currency] = float(rate)
+                    break
 
         rates['RUB'] = await self.usd_source.get_rate()
         

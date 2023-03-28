@@ -1,7 +1,10 @@
 class GetCoinsInfo(Exception):
     pass
 
-class GetOrderInfoException(Exception):
+class OrderError(Exception):
+    pass
+
+class AddressError(Exception):
     pass
 
 class GetCoinsToGiveException(GetCoinsInfo):
@@ -34,7 +37,17 @@ class GetShortNamesOfCoinsException(GetCoinsInfo):
     def __init__(self) -> None:
         super().__init__('Failed to get short names of coins')
 
-class GetOrderException(GetOrderInfoException):
+class GetOrderException(OrderError):
 
     def __init__(self, random_string) -> None:
-        super().__init__(f'Failed to get order by random_string {random_string}')
+        super().__init__(f'Failed to get order by random_string: {random_string}')
+
+class CreateOrderError(OrderError):
+
+    def __init__(self, **kwargs) -> None:
+        super().__init__(f'Failed to create order with params {kwargs}')
+
+class GetAddressError(AddressError):
+
+    def __init__(self, **kwargs) -> None:
+        super().__init__(f'Failed to get address by params {kwargs}')
