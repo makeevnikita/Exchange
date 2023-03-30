@@ -1,7 +1,8 @@
 from .services import get_short_names_of_coins
 
 import httpx
-import traceback
+
+
 
 class GetRateError(Exception):
     
@@ -18,10 +19,6 @@ class NetworkAPI:
     def check_status_code(cls, response) -> bool:
         if (response.status_code != 200):
             return False
-    
-    @classmethod
-    def output_error(cls, response):
-        print(f'{cls.__name__}: Failed to get rate. URL: {response.url}. Status code: {response.status_code}')
         
 class PoloniexAPI(NetworkAPI):
     
