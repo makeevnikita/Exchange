@@ -26,7 +26,7 @@ class PoloniexAPI(NetworkAPI):
     
     @classmethod
     async def get_rate(cls, currency_name):
-
+        
         async with httpx.AsyncClient() as client:
             try:
                 currency_name = currency_name + '_USDT'
@@ -35,7 +35,7 @@ class PoloniexAPI(NetworkAPI):
                 if (cls.check_status_code(response) != False):
                     return response.json()['markPrice']
                 
-                raise GetRateError(cls.__name__, response)
+                return None
             except Exception as exception:
                 raise exception
 
@@ -52,7 +52,7 @@ class BitpayAPI(NetworkAPI):
             if (cls.check_status_code(response) != False):
                 return response.json()['data']['rate']
             
-            raise GetRateError(cls.__name__, response)
+            return None
         except Exception as exception:
             raise exception
 
@@ -99,8 +99,11 @@ class ExchangeClient:
     async def get_rate(self):
 
         currencies = await self.crypto_source.get_currency_list()
-        api_list = [PoloniexAPI.get_rate, BitpayAPI.get_rate]
         rates = {}
+        for currency in currencies:
+            rates[currency] = None
+
+        api_list = [PoloniexAPI.get_rate, BitpayAPI.get_rate]
         
         for currency in currencies:
             for api in api_list:

@@ -109,11 +109,12 @@ def get_receive_tokens():
 def get_short_names_of_coins():
 
     coins_name_short = cache.get('coins_name_short')
-
+    
     if not coins_name_short:
 
         try:
             coins_name_short = []
+            print(ReceiveGiveCurrencies.objects.all())
             for coin in ReceiveGiveCurrencies.objects\
                 .values('give__currency_name_short', 'receive__currency_name_short')\
                 .exclude(give__currency_name_short = 'RUB', receive__currency_name_short = 'RUB')\
