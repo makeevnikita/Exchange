@@ -114,7 +114,6 @@ def get_short_names_of_coins():
 
         try:
             coins_name_short = []
-            print(ReceiveGiveCurrencies.objects.all())
             for coin in ReceiveGiveCurrencies.objects\
                 .values('give__currency_name_short', 'receive__currency_name_short')\
                 .exclude(give__currency_name_short = 'RUB', receive__currency_name_short = 'RUB')\

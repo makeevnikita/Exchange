@@ -7,9 +7,12 @@ from cryptosite.settings import MEDIA_URL
 from django.core.cache import cache
 from django.views import View
 from datetime import datetime
+from django.contrib.auth import authenticate, login
+
 
 import json
 import logging
+from django.urls import reverse
 
 
 
@@ -19,7 +22,8 @@ NAV_BAR = [{'title': 'Правила обмена', 'url_name': 'rules'},
 def get_context():
     context = {
         'nav_bar': NAV_BAR,
-        'MEDIA_URL': MEDIA_URL
+        'MEDIA_URL': MEDIA_URL,
+        'is_authenticated': False
     }
     return context
 
@@ -30,7 +34,8 @@ class ExchangeView(View):
     template_name = 'main/coins.html'
 
     async def get(self, request, *args, **kwargs):
-        
+        print(request.session.__dict__)
+        print(request.user)
         context = get_context()
         try:
             context['title'] = 'Главная'

@@ -1,5 +1,4 @@
 import httpx
-import asyncio
 from news.models import Article
 
 class NewsParser():
@@ -8,7 +7,10 @@ class NewsParser():
     async def get_articles_links(cls):
         raise NotImplementedError("Please Implement this method")
         
-
+    """ 
+        Этого кода не должно быть. Я уже даже не помню, что он должен делать.
+        Вероятно, парсить сайт с новостями
+    """
 class RBCNewsParser(NewsParser):
 
     URL = 'https://www.rbc.ru/crypto/tags/?tag=Криптовалюта'

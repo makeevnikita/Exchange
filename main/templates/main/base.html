@@ -22,6 +22,22 @@
                     {% endfor %}
                 </ul>
             </div>
+            <div class="auth">
+                <ul>
+                    {% if request.user.is_authenticated %}
+                        <li>
+                            <a href="{% url 'logout' %}">Выход</a>
+                        </li>
+                    {% else %}
+                        <li>
+                            <a href="{% url 'login' %}">Вход</a>
+                        </li>
+                        <li>
+                            <a href="{% url 'register' %}">Регистрация</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
         </div>
     </header>
     <body>

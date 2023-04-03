@@ -2,16 +2,24 @@
   width: 100%;
   background-color: #0a0a0a;
   display: flex;
+  justify-content: space-around;
 }
 .logo {
   max-height: 100px;
   margin-left: 50px;
 }
-.nav-bar {
+.nav-bar, .auth {
   max-height: 50%;
   margin-top: 50px;
+  display: flex;
 }
-.nav-bar a{
+.auth {
+  font-size: 12px;
+  border: 1px white solid;
+  border-radius: 10px;
+  height: 30px;
+}
+.nav-bar a, .auth a{
   text-decoration: none;
   color: white;
 }
@@ -20,6 +28,7 @@
   display: flex;
   color: white;
   font-family: 'Press Start 2P', cursive;
+  margin: auto;
 }
 .header-content ul li{
   margin-right: 25px;

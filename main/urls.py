@@ -3,8 +3,10 @@ from . import views
 from django.conf.urls.static import static
 from cryptosite import settings
 
+
+
 urlpatterns = [
-    path('', views.ExchangeView.as_view()),
+    path('', views.ExchangeView.as_view(), name='main'),
     path('get_exchange_rate/', views.get_exchange_rate),
     path('rules/', views.rules, name='rules'),
     path('contacts/', views.contacts, name='contacts'),
