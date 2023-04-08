@@ -2,9 +2,11 @@
 <html>
     <meta charset="UTF-8"/>
     <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:wght@300&display=swap" rel="stylesheet"> 
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="{% static 'main/css/header.css' %}" type="text/css">
+        <link rel="stylesheet" href="{% static 'main/css/footer.css' %}" type="text/css">
+        {% block header %}
+        {% endblock %}
         <title>{{ title }}</title>
     </head>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:wght@300&display=swap" rel="stylesheet"> 
@@ -20,15 +22,44 @@
                     {% endfor %}
                 </ul>
             </div>
-            
+            <div class="auth">
+                <ul>
+                    {% if request.user.is_authenticated %}
+                        <li>
+                            <a href="{% url 'logout' %}">Выход</a>
+                        </li>
+                    {% else %}
+                        <li>
+                            <a href="{% url 'login' %}">Вход</a>
+                        </li>
+                        <li>
+                            <a href="{% url 'register' %}">Регистрация</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
         </div>
     </header>
-    <link rel="stylesheet" href="{% static 'main/css/header.css' %}"/>
-    {% block content %}
-    {% endblock %}
+    <body>
+        {% block content %}
+        {% endblock %}
+    </body>
+    <div class="footer">
+        <div>
+            <ul>
+                {% for link in nav_bar %}
+                    <li>
+                        <a href="{% url link.url_name %}">{{ link.title }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+        <img class="logo" src='{% static "main/images/logo.svg" %}'></img>
+    </div>
 </html>
+{% block script %}
+{% endblock %}
 <style>
-    
     * {
         margin: 0px;
     }

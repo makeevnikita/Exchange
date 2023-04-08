@@ -59,13 +59,13 @@ class BitpayAPI(NetworkAPI):
 class CurrenciesSource:
 
     @classmethod
-    async def get_currency_list(self):
+    async def get_currency_list(cls):
         raise NotImplementedError
 
 class CurrenciesFromMYSQL(CurrenciesSource):
 
     @classmethod
-    async def get_currency_list(self):
+    async def get_currency_list(cls):
         return await get_short_names_of_coins()
 
 class CentreBankAPI(NetworkAPI):

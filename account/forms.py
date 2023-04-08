@@ -11,21 +11,33 @@ class RegisterForm(UserCreationForm):
         
         super(RegisterForm, self).__init__(*args, **kwargs)
         
-        self.fields['username'] = \
-            forms.CharField(widget = widgets.TextInput(attrs={'placeholder': "Username", "class": "form-control"}),
-            label = 'Никнейм')
+        self.fields['username'] = forms.CharField(
+            widget = widgets.TextInput(
+                attrs={'placeholder': "Username", "class": "form-control"},
+            ),
+            label = 'Никнейм',
+        )
 
-        self.fields['email'] = \
-            forms.CharField(widget = widgets.EmailInput(attrs={'placeholder': "Email", "class": "form-control"}),
-            label = 'Email')
+        self.fields['email'] = forms.CharField(
+            widget = widgets.EmailInput(
+                attrs={'placeholder': "Email", "class": "form-control"},
+            ),
+            label = 'Email',
+        )
         
-        self.fields['password1'] = \
-            forms.CharField(widget = widgets.PasswordInput(attrs={'placeholder': "Пароль", "class": "form-control"}),
-            label = 'Пароль')
+        self.fields['password1'] = forms.CharField(
+            widget = widgets.PasswordInput(
+                attrs={'placeholder': "Пароль", "class": "form-control"},
+            ),
+            label = 'Пароль',
+        )
         
-        self.fields['password2'] = \
-            forms.CharField(widget = widgets.PasswordInput(attrs={'placeholder': "Повторить пароль", "class": "form-control"}),
-            label = 'Повторить пароль')
+        self.fields['password2'] = forms.CharField(
+            widget = widgets.PasswordInput(
+                attrs={'placeholder': "Повторить пароль", "class": "form-control"},
+            ),
+            label = 'Повторить пароль',
+        )
         
     class Meta:
         model = User

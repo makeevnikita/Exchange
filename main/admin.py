@@ -2,6 +2,8 @@ from django.contrib import admin
 from django.forms import ModelForm
 from .models import *
 
+
+
 @admin.register(TokenStandart)
 class TokenStandartAdmin(admin.ModelAdmin):
     pass
@@ -26,7 +28,7 @@ class GiveCurrencyAdmin(ReceiveCurrencyAdmin):
 
 @admin.register(ReceiveGiveCurrencies)
 class ReceiveGiveCurrenciesAdmin(admin.ModelAdmin):
-    list_display = ('get_receive_currency_name', 'get_give_currency_name', 'is_active')
+    list_display = ('get_receive_currency_name', 'get_give_currency_name', 'is_active',)
 
 @admin.register(AddressTo)
 class AddressToAdmin(admin.ModelAdmin):
@@ -34,8 +36,10 @@ class AddressToAdmin(admin.ModelAdmin):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    readonly_fields = ['number', 'date_time', 'give_sum', 'receive_sum', 
-                       'give', 'receive', 'give_token_standart', 'receive_token_standart',
-                       'receive_name', 'receive_address', 'address_to']
-    list_display = ['number', 'date_time']
-    exclude = ['random_string', ]
+    readonly_fields = ('user', 'number', 'date_time', 'give_sum',
+                       'receive_sum', 'give', 'receive',
+                       'give_token_standart', 'receive_token_standart',
+                       'receive_name', 'receive_address', 'address_to',
+                    )
+    list_display = ('number', 'date_time',)
+    exclude = ('random_string', )

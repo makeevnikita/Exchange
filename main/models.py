@@ -1,6 +1,8 @@
 from django.db import models
 from cryptosite.settings import STATIC_ROOT
 from django.utils import timezone
+from django.contrib.auth.models import User
+
 
 
 class TokenStandart(models.Model):
@@ -49,7 +51,8 @@ class GiveCurrency(models.Model):
 class ReceiveCurrency(models.Model):
 
     """
-        Валюты, которые отдаём мы
+        Валюты, которые отдаём мы.
+
         currency_name - название платёжно системы   
         currency_name_short - название валюты кратко 
         image - логотип платёжной системы
@@ -70,7 +73,8 @@ class ReceiveCurrency(models.Model):
 class AddressTo(models.Model):
     
     """
-        Наши кошельки, на которые клиенты переводят свои деньги
+        Наши кошельки, на которые клиенты переводят свои деньги.
+
         address - адрес, на который клиент переводит деньги
         currency - валюта которую отдаст клиент
         token_standart - сеть валюты
@@ -102,7 +106,8 @@ class ReceiveGiveCurrencies(models.Model):
 class Order(models.Model):
     
     """
-        Заказы
+        Заказы.
+
         number - номер заказа
         random_string - ссылка на заказ
         date_time - время и дата заказа
@@ -116,21 +121,76 @@ class Order(models.Model):
         receive_address - адрес кошелька получателя
         address_to - адрес, на которуй клиент кидает свои деньги
         paid - исполнен ли заказ
+        user - заказчик
     """
     
-    number = models.IntegerField(null=False, default=0)
-    random_string = models.CharField(max_length=200, null=False, default='Нет строки')
-    date_time = models.DateTimeField(null=False, default=timezone.now)
-    give_sum = models.FloatField(null=False, default=0)
-    receive_sum = models.FloatField(null=False, default=0)
-    give = models.ForeignKey(GiveCurrency, on_delete=models.SET_NULL, null=True)
-    receive = models.ForeignKey(ReceiveCurrency, on_delete=models.SET_NULL, null=True)
-    give_token_standart = models.ForeignKey(TokenStandart, on_delete=models.SET_NULL, null=True, related_name='give_token_standart')
-    receive_token_standart = models.ForeignKey(TokenStandart, on_delete=models.SET_NULL, null=True, related_name='receive_token_standart')
-    receive_name = models.CharField(max_length=255, null=False, default='Без имени')
-    receive_address = models.CharField(max_length=255, null=False, default='Без адреса')
-    address_to = models.ForeignKey(AddressTo, on_delete=models.SET_NULL, null=True)
-    paid = models.BooleanField(null=False, default=False)
+    number = models.IntegerField(
+        null=False,
+        default=0,
+    )
+    random_string = models.CharField(
+        max_length=200,
+        null=False,
+        default='Нет строки',
+    )
+    date_time = models.DateTimeField(
+        null=False,
+        default=timezone.now,
+    )
+    give_sum = models.FloatField(
+        null=False,
+        default=0,
+    )
+    receive_sum = models.FloatField(
+        null=False,
+        default=0,
+    )
+    give = models.ForeignKey(
+        GiveCurrency,
+        on_delete=models.SET_NULL,
+        null=True,
+    )
+    receive = models.ForeignKey(
+        ReceiveCurrency,
+        on_delete=models.SET_NULL,
+        null=True,
+    )
+    give_token_standart = models.ForeignKey(
+        TokenStandart,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='give_token_standart',
+    )
+    receive_token_standart = models.ForeignKey(
+        TokenStandart,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='receive_token_standart',
+    )
+    receive_name = models.CharField(
+        max_length=255,
+        null=False,
+        default='Без имени',
+    )
+    receive_address = models.CharField(
+        max_length=255,
+        null=False, 
+        default='Без адреса',
+    )
+    address_to = models.ForeignKey(
+        AddressTo,
+        on_delete=models.SET_NULL,
+        null=True,
+    )
+    paid = models.BooleanField(
+        null=False,
+        default=False,
+    )
+    user = models.ForeignKey(
+        User,
+        null=True,
+        on_delete=models.SET_NULL,
+    )
 
     def __str__(self) -> str:
         return f'Заказ {self.number}'

@@ -3,27 +3,21 @@ from django.http import JsonResponse
 from django.core.cache import cache
 from . import exchangenetwork as network
 from . import services
-from cryptosite.settings import MEDIA_URL
+from cryptosite.settings import MEDIA_URL, NAV_BAR
 from django.core.cache import cache
 from django.views import View
 from datetime import datetime
-from django.contrib.auth import authenticate, login
-
+from django.contrib.auth import get_user
 
 import json
 import logging
-from django.urls import reverse
 
 
-
-NAV_BAR = [{'title': 'Правила обмена', 'url_name': 'rules'},
-           {'title': 'Контакты', 'url_name': 'contacts'}]
-    
+  
 def get_context():
     context = {
         'nav_bar': NAV_BAR,
         'MEDIA_URL': MEDIA_URL,
-        'is_authenticated': False
     }
     return context
 
@@ -34,8 +28,7 @@ class ExchangeView(View):
     template_name = 'main/coins.html'
 
     async def get(self, request, *args, **kwargs):
-        print(request.session.__dict__)
-        print(request.user)
+
         context = get_context()
         try:
             context['title'] = 'Главная'
@@ -52,21 +45,26 @@ class ExchangeView(View):
             return render(request=request, template_name='InternalError.html', status=500, context=context)
         
     async def post(self, request, *args, **kwargs):
+        
+        user = None
+        if get_user(request).is_authenticated:
+            user = get_user(request)
 
-        try:
-            random_string = await services.create_new_order(
-                    give_sum=request.POST['give_sum'],
-                    receive_sum=request.POST['receive_sum'],
-                    give_payment_method_id=request.POST['give_payment_method_id'],
-                    receive_payment_method_id=request.POST['receive_payment_method_id'],
-                    give_token_standart_id=request.POST['give_token_standart_id'],
-                    receive_token_standart_id=request.POST['receive_token_standart_id'],
-                    receive_name=request.POST['receive_name'],
-                    receive_address=request.POST['receive_address'])
+        random_string = await services.create_new_order(
+                give_sum=request.POST['give_sum'],
+                receive_sum=request.POST['receive_sum'],
+                give_payment_method_id=request.POST['give_payment_method_id'],
+                receive_payment_method_id=request.POST['receive_payment_method_id'],
+                give_token_standart_id=request.POST['give_token_standart_id'],
+                receive_token_standart_id=request.POST['receive_token_standart_id'],
+                receive_name=request.POST['receive_name'],
+                receive_address=request.POST['receive_address'],
+                user=user
+        )
 
-            return JsonResponse({'link': 'start_exchange/exchange/%s' % random_string})
-        except Exception as exception:
-            logging.exception(exception)
+        return JsonResponse(
+            data={'link': 'start_exchange/exchange/{0}'.format(random_string)},
+        )
     
 def rules(request):
 
@@ -86,22 +84,30 @@ async def get_exchange_rate(request):
         rates = cache.get('rates')
         if not rates:
 
-            exchange = network.ExchangeClient(network.CurrenciesFromMYSQL, network.CentreBankAPI)
+            exchange = network.ExchangeClient(
+                network.CurrenciesFromMYSQL,
+                network.CentreBankAPI
+            )
             rates = await exchange.get_rate()
 
             cache.set('rates', rates, 1800)
 
-        return JsonResponse({'rates': json.dumps(rates)}, safe=False, json_dumps_params={'ensure_ascii': False})
+        return JsonResponse(
+            data={'rates': json.dumps(rates)},
+            safe=False,
+            json_dumps_params={'ensure_ascii': False},
+        )
     except Exception as exception:
         logging.exception(exception)
 
 class MakeOrderView(View):
 
     async def get(self, request, *args, **kwargs):
-
         """
-            Находит заказ, считает сколько прошло времени с момента создания заказа
-            Клиент видит данные заказа и сколько времени осталось, чтобы оплатить его 
+            Находит заказ, считает сколько прошло времени с момента создания заказа.
+            Клиент видит данные заказа и сколько времени осталось, чтобы оплатить его.
+
+            return: HttpResponse
         """
 
         try:
@@ -118,26 +124,41 @@ class MakeOrderView(View):
             else:
                 minutes = int(total_seconds / 60)
                 seconds = int(((total_seconds / 60) % 1) * 60)
-                context['minutes'] = minutes if minutes >= 10 else f'0{minutes}'
-                context['seconds'] = seconds if seconds >= 10 else f'0{seconds}'
+                context['minutes'] = minutes if minutes >= 10 else '0{0}'.format(minutes)
+                context['seconds'] = seconds if seconds >= 10 else '0{0}'.format(seconds)
 
-            return render(request=request, template_name='main/pay_order.html', context=context)
+            return render(
+                request=request,
+                template_name='main/pay_order.html',
+                context=context,
+            )
         except Exception as exception:
             logging.exception(exception)
 
-            return render(request=request, template_name='InternalError.html', status=500, context=context)
-        
-    async def post(self, request, *args, **kwargs):
+            return render(
+                request=request,
+                template_name='InternalError.html',
+                status=500,
+                context=context,
+            )
 
+    async def post(self, request, *args, **kwargs):
         """
-            Получает ответ от клиента о том оплатил ли он заказ или нет
+            Получает ответ от клиента о том оплатил ли он заказ или нет.
+
+            return: JsonResponse
         """
 
         try:
-            order = await services.get_order(request.POST['random_string'])
-            order.paid = request.POST['confirm']
-            order.save()
+            order = await services.set_order_confirm(
+                request.POST['random_string'],
+                request.POST['confirm'],
+            )
 
-            return JsonResponse({order.number, order.paid}, safe=False, json_dumps_params={'ensure_ascii': False})
+            return JsonResponse(
+                data={order.number, order.paid},
+                safe=False,
+                json_dumps_params={'ensure_ascii': False},
+            )
         except Exception as exception:
             logging.exception(exception)

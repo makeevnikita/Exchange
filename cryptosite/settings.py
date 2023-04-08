@@ -28,7 +28,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'main',
-    'news'
+    'news',
 ]
 
 MIDDLEWARE = [
@@ -147,3 +147,6 @@ LOGGING = {
 }
 
 LOGIN_REDIRECT_URL = '/'
+NAV_BAR = [{'title': 'Правила обмена', 'url_name': 'rules'},
+           {'title': 'Контакты', 'url_name': 'contacts'},
+           ]

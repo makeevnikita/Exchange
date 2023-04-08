@@ -33,6 +33,11 @@ class LoginUserView(LoginView):
     redirect_authenticated_user = False
     success_url = reverse_lazy('main')
     
+    def get_context_data(self, **kwargs):
+
+        kwargs['title'] = 'Авторизация'
+        return super().get_context_data(**kwargs)
+
     def form_invalid(self, form):
-        messages.error(self.request,'Invalid username or password')
+        messages.error(self.request,'Неверный логин или пароль')
         return self.render_to_response(self.get_context_data(form=form))
