@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block header %}
+    <link rel="stylesheet" href="{% static 'main/css/pay_order.css' %}" type="text/css">
+{% endblock %}
+{% block content %}
+    <div class="content">
+        <ul>
+            {% for order in orders %}
+                <li>
+                    <a href="#" class="order-wrap">
+                        <div>
+                            <h2>Отдадите</h2>
+                            <div class="check receive">
+                                <div id="icon"><img src="{{ MEDIA_URL }}{{ order.give.image }}"></div>
+                                <div id="amount">{{ order.give_sum }} {{ order.give.currency_name_short }}</div>
+                            </div>
+                        </div>
+                        <div style="display: table;"><div style="display: table-cell; vertical-align: middle;">></div></div>
+                        <div>
+                            <h2>Получаете</h2>
+                            <div class="check give">
+                                <div id="icon"><img src="{{ MEDIA_URL }}{{ order.receive.image }}"></div>
+                                <div id="amount">{{ order.receive_sum }} {{ order.receive.currency_name_short }}</div>
+                            </div>
+                        </div>
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+<style>
+    
+.order-wrap {
+  display: flex;
+  justify-content: space-around;
+  background-color: rgb(255, 255, 255);
+  padding: 5px 0px;
+  font-size: 24px;
+  font-weight: bolder;
+  text-decoration: none;
+  color: black;
+}
+</style>
+{% endblock %}

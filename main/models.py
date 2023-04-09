@@ -31,7 +31,7 @@ class CategoryPaymentMethod(models.Model):
 class GiveCurrency(models.Model):
 
     """
-        Валюты, которые отдаём клиент
+        Валюты, которые отдаёт клиент
         currency_name - название платёжно системы   
         currency_name_short - название валюты кратко 
         image - логотип платёжной системы

@@ -160,12 +160,12 @@ async def create_new_order(**kwargs):
     """
     try:
         number = await Order.objects.aaggregate(Max('number'))
-        address = await ExchangeDBO.get_address(
-            kwargs['receive_payment_method_id'],
+        address = await get_address(
+            kwargs['give_payment_method_id'],
             kwargs['give_token_standart_id'],
         )
         random_string = ''.join(random.choice(string.ascii_letters) for i in range(200))
-        
+
         new_order = Order(
             number=number['number__max'] + 1,
             random_string=random_string, 
@@ -201,29 +201,26 @@ async def set_order_confirm(random_string, confirm):
     except Exception as exception:
         raise GetOrderException(random_string) from exception
 
-class ExchangeDBO:
-     
-    @classmethod
-    async def get_address(cls, receive_address_id, token_standart_id):
+async def get_address(give_address_id, token_standart_id):
 
-        """
-            Получаем все адреса для перевода денег.
-            Храним их в кэше.
-            По мере необходимости вынимаем нужный адрес из кэша.
+    """
+        Получаем адрес, на который клиент переводит свои деньги.
+        Храним их в кэше.
+        По мере необходимости вынимаем нужный адрес из кэша.
 
-            return: адрес, на который клиент переводит свои деньги
+        return: адрес, на который клиент переводит свои деньги
         """
 
-        try:
-            address_list = cache.get('address_list')
-            if address_list == None:
-                address_list = AddressTo.objects.all()
-                cache.set('address_list', address_list, 360)
-                
-            return address_list.get(currency_id=receive_address_id,
-                                    token_standart_id=token_standart_id,
-                                )
-        except Exception as exception:
-            raise GetAddressError(receive_address_id=receive_address_id,
-                                  token_standart_id=token_standart_id,
-                                ) from exception
+    try:
+        address_list = cache.get('address_list')
+        if address_list == None:
+            address_list = AddressTo.objects.all()
+            cache.set('address_list', address_list, 360)
+            
+        return address_list.aget(currency_id = give_address_id,
+                                token_standart_id = token_standart_id,
+                            )
+    except Exception as exception:
+        raise GetAddressError(currency_id = give_address_id,
+                              token_standart_id = token_standart_id,
+                            ) from exception

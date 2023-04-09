@@ -6,8 +6,10 @@ from . import services
 from cryptosite.settings import MEDIA_URL, NAV_BAR
 from django.core.cache import cache
 from django.views import View
+from django.views.generic import ListView
 from datetime import datetime
 from django.contrib.auth import get_user
+from .models import Order
 
 import json
 import logging
@@ -25,16 +27,23 @@ logging.getLogger('main')
 
 class ExchangeView(View):
     
+
     template_name = 'main/coins.html'
 
     async def get(self, request, *args, **kwargs):
 
+        """
+            Главная страница сайта.
+
+            return: HttpResponse
+        """
+        
         context = get_context()
         try:
             context['title'] = 'Главная'
             context['give_coins'] = [coin for coin in await services.get_coins_to_give()]
             context['receive_coins'] = [coin for coin in await services.get_coins_to_receive()]
-            context['exchange_ways'] =  json.dumps(list([coin for coin in await services.get_exchange_ways()]))
+            context['exchange_ways'] = json.dumps(list([coin for coin in await services.get_exchange_ways()]))
             context['give_tokens'] = json.dumps(list([coin for coin in await services.get_give_tokens()]))
             context['receive_tokens'] = json.dumps(list([coin for coin in await services.get_receive_tokens()]))
             
@@ -46,20 +55,30 @@ class ExchangeView(View):
         
     async def post(self, request, *args, **kwargs):
         
+        """
+            Создаёт новый заказ.
+
+            От клиента приходит ajax-запрос, который содержит данные заказа
+            
+            random_string - ссылка на заказ
+            user - клиент, если он прошёл аутентификацию, иначе None
+
+            return JsonResponse 
+        """
         user = None
         if get_user(request).is_authenticated:
             user = get_user(request)
 
         random_string = await services.create_new_order(
-                give_sum=request.POST['give_sum'],
-                receive_sum=request.POST['receive_sum'],
-                give_payment_method_id=request.POST['give_payment_method_id'],
-                receive_payment_method_id=request.POST['receive_payment_method_id'],
-                give_token_standart_id=request.POST['give_token_standart_id'],
-                receive_token_standart_id=request.POST['receive_token_standart_id'],
-                receive_name=request.POST['receive_name'],
-                receive_address=request.POST['receive_address'],
-                user=user
+            give_sum=request.POST['give_sum'],
+            receive_sum=request.POST['receive_sum'],
+            give_payment_method_id=request.POST['give_payment_method_id'],
+            receive_payment_method_id=request.POST['receive_payment_method_id'],
+            give_token_standart_id=request.POST['give_token_standart_id'],
+            receive_token_standart_id=request.POST['receive_token_standart_id'],
+            receive_name=request.POST['receive_name'],
+            receive_address=request.POST['receive_address'],
+            user=user
         )
 
         return JsonResponse(
@@ -101,7 +120,7 @@ async def get_exchange_rate(request):
         logging.exception(exception)
 
 class MakeOrderView(View):
-
+    
     async def get(self, request, *args, **kwargs):
         """
             Находит заказ, считает сколько прошло времени с момента создания заказа.
@@ -109,7 +128,7 @@ class MakeOrderView(View):
 
             return: HttpResponse
         """
-
+        
         try:
             context = get_context()
             order = await services.get_order(kwargs['random_string'])
@@ -126,7 +145,7 @@ class MakeOrderView(View):
                 seconds = int(((total_seconds / 60) % 1) * 60)
                 context['minutes'] = minutes if minutes >= 10 else '0{0}'.format(minutes)
                 context['seconds'] = seconds if seconds >= 10 else '0{0}'.format(seconds)
-
+                
             return render(
                 request=request,
                 template_name='main/pay_order.html',
@@ -144,7 +163,7 @@ class MakeOrderView(View):
 
     async def post(self, request, *args, **kwargs):
         """
-            Получает ответ от клиента о том оплатил ли он заказ или нет.
+            Получает ответ от клиента о том, оплатил ли он заказ или нет.
 
             return: JsonResponse
         """
@@ -162,3 +181,16 @@ class MakeOrderView(View):
             )
         except Exception as exception:
             logging.exception(exception)
+
+class OrdersList(ListView):
+    
+    template_name = 'main/order_list.html'
+    extra_context = {'title': 'Заказы', 'MEDIA_URL': MEDIA_URL}
+    context_object_name = 'orders'
+
+    def get_queryset(self):
+
+        if not get_user(self.request).is_authenticated:
+            return
+
+        return Order.objects.filter(user = get_user(self.request))

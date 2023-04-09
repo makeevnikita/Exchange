@@ -154,10 +154,6 @@ body {
   outline: 0;
   padding: 5px 50px ;
 }
-.check-claim-content {
-  display: flex;
-  justify-content: space-between;
-}
 .modal input {
   margin: 0px 15px;
   height: 50px;

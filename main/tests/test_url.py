@@ -1,22 +1,15 @@
-from django.test import TestCase, tag
-from django.contrib.auth.models import User
-from main import exchangenetwork as network
+from django.test import TransactionTestCase, tag
 from main.models import ReceiveCurrency, GiveCurrency, ReceiveGiveCurrencies,\
-                        TokenStandart, CategoryPaymentMethod
-from main import services
+                        TokenStandart, CategoryPaymentMethod, Order, AddressTo
+from django.contrib.auth.models import User
+from django.urls import reverse
 
 
 
-class CoinsListTest(network.CurrenciesSource):
+class ExchangeViewTest(TransactionTestCase):
 
-    @classmethod
-    async def get_currency_list(cls):
-        return ['ETH', 'BTC', 'TEST',]
-    
-class ExchangeNetworkTest(TestCase):
-    
     """
-        Проверяет возможность взять курсы валют из сторонних API
+        Тестирует ссылки
     """
 
     def setUp(cls):
@@ -28,14 +21,15 @@ class ExchangeNetworkTest(TestCase):
             receive_coins - валюты, которые может получить клиент
             give_coins - валюты, которые может отдать клиент
             receive_give_currencies - пути обмена (модель ManyToMany)
+            addresses - адреса, на которые клиент переводит деньги
         """
 
         user = User.objects.create_user(username='user_test', password='QWEzxc1_')
 
         tokens = [
-            {'token_standart': 'BIP20', 'commission': 0},
-            {'token_standart': 'Нет сети', 'commission': 0},
-            ]
+             {'token_standart': 'BIP20', 'commission': 0},
+             {'token_standart': 'Нет сети', 'commission': 0},
+             ]
         for token in tokens:
              TokenStandart.objects.create(**token)
 
@@ -100,50 +94,45 @@ class ExchangeNetworkTest(TestCase):
         )
         receive_give_currencies.save()
 
-    @tag('slow')
-    async def test_rates_not_has_none(self):
+        addresses = [
+            {'address': 'address_test_1',
+             'currency': GiveCurrency.objects.get(currency_name = 'Сбербанк'),
+             'token_standart': TokenStandart.objects.get(token_standart = 'Нет сети')},
+        ]
+
+        for address in addresses:
+            AddressTo.objects.create(**address)
+
+        Order.objects.create(number=1,
+            random_string='random_string', 
+            give_sum=100, 
+            receive_sum=100, 
+            give_id=GiveCurrency.objects.get(currency_name = 'Сбербанк').id,
+            receive_id=ReceiveCurrency.objects.get(currency_name = 'Etherium').id, 
+            give_token_standart_id=TokenStandart.objects.get(token_standart = 'Нет сети').id,
+            receive_token_standart_id=TokenStandart.objects.get(token_standart = 'BIP20').id,
+            receive_name='Без имени',
+            receive_address='Без адреса',
+            address_to_id=AddressTo.objects.get(currency__currency_name = 'Сбербанк').id,
+            user=User.objects.get(username = 'user_test'),
+        )
+
+    @tag('fast')
+    def test_main_page(self):
         
         """
-            Запрашивает курс валюты из стороннего API.
-            Если хотя бы один курс равен None, то тест не пройден.
+            Проверяет работоспособность главной страницы
         """
 
-        exchange = network.ExchangeClient(network.CurrenciesFromMYSQL, network.CentreBankAPI)
-        rates = await exchange.get_rate()
-        print('Rates:{0}'.format(rates.items()))
-        
-        self.assertTrue(None not in rates.values())
-
-    @tag('slow')
-    async def test_rates_has_none(self):
-        
-        """
-            Запрашивает курс валюты из стороннего API.
-            Если хотя бы один курс равен None, то тест пройден.
-        """
-
-        exchange = network.ExchangeClient(CoinsListTest, network.CentreBankAPI)
-        rates = await exchange.get_rate()
-        print('Rates:{0}'.format(rates.items()))
-        
-        self.assertTrue(None in rates.values())
+        response = self.client.get(reverse('main'))
+        self.assertEqual(response.status_code, 200)
     
     @tag('fast')
-    async def creating_orders(self):
-            
+    def test_get_order_page(self):
+        
         """
-            Создаёт заказ.
+            Тест траницы с информацией о заказе
         """
 
-        random_string = await services.create_new_order(
-            give_sum=1000,
-            receive_sum=1000,
-            give_payment_method_id=GiveCurrency.objects.get(currency_name_short='RUB').id,
-            receive_payment_method_id=ReceiveCurrency.objects.get(currency_name_short='ETH').id,
-            give_token_standart_id=TokenStandart.objects.get(token_standart='BIP20').id,
-            receive_token_standart_id=TokenStandart.objects.get(token_standart='BIP20').id,
-            receive_name='TEST_USER',
-            receive_address='0000000000000000',
-            user=User.objects.get(username='test_user')
-        )
-        self.assertTrue(random_string)
+        response = self.client.get(reverse('order_info', args=['random_string',]))
+        self.assertEqual(response.status_code, 200)
