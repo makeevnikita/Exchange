@@ -5,41 +5,70 @@
 {% endblock %}
 {% block content %}
     <div class="content">
+        {{ request.name }}
         <ul>
             {% for order in orders %}
                 <li>
-                    <a href="#" class="order-wrap">
-                        <div>
-                            <h2>Отдадите</h2>
-                            <div class="check receive">
-                                <div id="icon"><img src="{{ MEDIA_URL }}{{ order.give.image }}"></div>
-                                <div id="amount">{{ order.give_sum }} {{ order.give.currency_name_short }}</div>
-                            </div>
+                    <div class="order-wrap">
+                        <div class="head">
+                            <div class="executed">{{ order.status.status }}</div>
                         </div>
-                        <div style="display: table;"><div style="display: table-cell; vertical-align: middle;">></div></div>
-                        <div>
-                            <h2>Получаете</h2>
-                            <div class="check give">
-                                <div id="icon"><img src="{{ MEDIA_URL }}{{ order.receive.image }}"></div>
-                                <div id="amount">{{ order.receive_sum }} {{ order.receive.currency_name_short }}</div>
+                        <a href="{{ order.get_absolute_url }}" class="middle">
+                            <div>
+                                <h2>Отдадите</h2>
+                                <div class="check receive">
+                                    <div><img src="{{ MEDIA_URL }}{{ order.give.image }}"></div>
+                                    <div>{{ order.give_sum }} {{ order.give.currency_name_short }}</div>
+                                </div>
+                                <div class="address-to-wrap"><span>На адрес {{ order.address_to }}</span></div>
                             </div>
-                        </div>
-                    </a>
+                            <div style="display: table;"><div style="display: table-cell; vertical-align: middle;">></div></div>
+                            <div>
+                                <h2>Получаете</h2>
+                                <div class="check give">
+                                    <div><img src="{{ MEDIA_URL }}{{ order.receive.image }}"></div>
+                                    <div>{{ order.receive_sum }} {{ order.receive.currency_name_short }}</div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    
                 </li>
             {% endfor %}
         </ul>
     </div>
 <style>
-    
 .order-wrap {
+    background-color: rgb(255, 255, 255);
+    padding: 50px 0px;
+    font-weight: bolder;
+    border-radius: 10px;
+    margin-top: 20px;
+} 
+.middle {
   display: flex;
   justify-content: space-around;
-  background-color: rgb(255, 255, 255);
-  padding: 5px 0px;
   font-size: 24px;
-  font-weight: bolder;
   text-decoration: none;
   color: black;
+}
+.address-to-wrap {
+    font-size: 12px;
+}
+.content ul {
+    list-style: none;
+}
+.head {
+    display: flex;
+    justify-content: center;
+}
+.executed {
+    font-size: 12px;
+    background-color: black;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 10px;
+    text-align: center;
 }
 </style>
 {% endblock %}

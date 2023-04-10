@@ -32,7 +32,7 @@ class ReceiveGiveCurrenciesAdmin(admin.ModelAdmin):
 
 @admin.register(AddressTo)
 class AddressToAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('address', 'currency', 'token_standart',)
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):

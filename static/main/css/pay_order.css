@@ -3,16 +3,12 @@ body {
   background-color: #f2f4f9;
   font-family: 'Roboto', cursive;
 }
-* {
-  margin: 0px;
-}
 .content {
-  background-color: white;
   margin: 30px auto;
   max-width: 900px;
-  border-radius: 20px 20px;
   padding: 30px 30px;
-  box-sizing: border-box;
+  min-height: 100%;
+  border-radius: 10px;
 }
 .text {
   display: flex;

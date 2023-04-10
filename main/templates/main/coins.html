@@ -73,16 +73,16 @@
             <table cellpadding="0" cellspacing="0"> 
               <tbody id="receive-table">
                 {% for coin in receive_coins %}
-                    <tr>
-                      <td style="display: none;"
-                      class="currency-td" id="{{ coin.receive_id }}"
-                      payment-method="{{ coin.receive__category_payment_method__id }}"
-                      currency-name-short="{{ coin.receive__currency_name_short }}">
-                        <img src="{{ MEDIA_URL }}{{ coin.receive__image}}" ></img>
-                            {{ coin.receive__currency_name }}
-                      </td>
-                    </tr>
-                  {% endfor %}
+                  <tr>
+                    <td style="display: none;"
+                    class="currency-td" id="{{ coin.receive_id }}"
+                    payment-method="{{ coin.receive__category_payment_method__id }}"
+                    currency-name-short="{{ coin.receive__currency_name_short }}">
+                      <img src="{{ MEDIA_URL }}{{ coin.receive__image}}" ></img>
+                          {{ coin.receive__currency_name }}
+                    </td>
+                  </tr>
+                {% endfor %}
               </tbody>
             </table>
         </div>

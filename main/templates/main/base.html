@@ -3,17 +3,50 @@
     <meta charset="UTF-8"/>
     <head>
         <meta charset="utf-8">
-        <link rel="stylesheet" href="{% static 'main/css/header.css' %}" type="text/css">
-        <link rel="stylesheet" href="{% static 'main/css/footer.css' %}" type="text/css">
+        <link rel="stylesheet" href="{% static 'main/css/base.css' %}" type="text/css">
         {% block header %}
         {% endblock %}
         <title>{{ titile }}</title>
     </head>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:wght@300&display=swap" rel="stylesheet"> 
-    <header>
-        <div class='header-content'>
-            <img class="logo" src='{% static "main/images/logo.svg" %}'></img>
-            <div class="nav-bar">
+    <body>
+        <header>
+            <div class='header-content'>
+                <img class="logo" src='{% static "main/images/logo.svg" %}'></img>
+                <div class="nav-bar">
+                    <ul>
+                        {% for link in nav_bar %}
+                            <li>
+                                <a href="{% url link.url_name %}">{{ link.title }}</a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="auth">
+                    <ul>
+                        {% if request.user.is_authenticated %}
+                            <li>
+                                <a href="{% url 'orders' %}">Заказы</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'logout' %}">Выход</a>
+                            </li>
+                        {% else %}
+                            <li>
+                                <a href="{% url 'login' %}">Вход</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'register' %}">Регистрация</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </header>
+        {% block content %}
+        {% endblock %}
+        <div class="footer">
+            <div>
                 <ul>
                     {% for link in nav_bar %}
                         <li>
@@ -22,45 +55,9 @@
                     {% endfor %}
                 </ul>
             </div>
-            <div class="auth">
-                <ul>
-                    {% if request.user.is_authenticated %}
-                        <li>
-                            <a href="{% url 'logout' %}">Выход</a>
-                        </li>
-                    {% else %}
-                        <li>
-                            <a href="{% url 'login' %}">Вход</a>
-                        </li>
-                        <li>
-                            <a href="{% url 'register' %}">Регистрация</a>
-                        </li>
-                    {% endif %}
-                </ul>
-            </div>
+            <img class="logo" src='{% static "main/images/logo.svg" %}'></img>
         </div>
-    </header>
-    <body>
-        {% block content %}
-        {% endblock %}
     </body>
-    <div class="footer">
-        <div>
-            <ul>
-                {% for link in nav_bar %}
-                    <li>
-                        <a href="{% url link.url_name %}">{{ link.title }}</a>
-                    </li>
-                {% endfor %}
-            </ul>
-        </div>
-        <img class="logo" src='{% static "main/images/logo.svg" %}'></img>
-    </div>
 </html>
 {% block script %}
 {% endblock %}
-<style>
-    * {
-        margin: 0px;
-    }
-</style>

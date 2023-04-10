@@ -1,4 +1,4 @@
-from main.models import ReceiveGiveCurrencies, Order, AddressTo
+from main.models import ReceiveGiveCurrencies, Order, AddressTo, OrderStatus
 from django.core.cache import cache
 from asgiref.sync import sync_to_async
 from django.db.models import Max
@@ -160,7 +160,7 @@ async def create_new_order(**kwargs):
     """
     try:
         number = await Order.objects.aaggregate(Max('number'))
-        address = await get_address(
+        address = get_address(
             kwargs['give_payment_method_id'],
             kwargs['give_token_standart_id'],
         )
@@ -177,8 +177,9 @@ async def create_new_order(**kwargs):
             receive_token_standart_id=kwargs['receive_token_standart_id'],
             receive_name='Без имени' if kwargs['receive_name'] == '' else kwargs['receive_name'],
             receive_address='Без адреса' if kwargs['receive_address'] == '' else kwargs['receive_address'],
-            address_to_id=address.id,
+            address_to=address,
             user=kwargs['user'],
+            status=OrderStatus.objects.get(id = 2),
         )
         
         new_order.save()
@@ -193,15 +194,17 @@ async def get_order(random_string):
     except Exception as exception:
         raise GetOrderException(random_string) from exception
 
-async def set_order_confirm(random_string, confirm):
+async def update_status(random_string, confirm):
+
     try:
         order = await get_order(random_string)
         order.paid = confirm
+        order.status = OrderStatus.objects.get(id = 2)
         order.save()
     except Exception as exception:
         raise GetOrderException(random_string) from exception
 
-async def get_address(give_address_id, token_standart_id):
+def get_address(give_address_id, token_standart_id):
 
     """
         Получаем адрес, на который клиент переводит свои деньги.
@@ -217,10 +220,11 @@ async def get_address(give_address_id, token_standart_id):
             address_list = AddressTo.objects.all()
             cache.set('address_list', address_list, 360)
             
-        return address_list.aget(currency_id = give_address_id,
+        return address_list.get(currency_id = give_address_id,
                                 token_standart_id = token_standart_id,
                             )
     except Exception as exception:
         raise GetAddressError(currency_id = give_address_id,
                               token_standart_id = token_standart_id,
                             ) from exception
+    

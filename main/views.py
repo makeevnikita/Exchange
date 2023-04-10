@@ -6,7 +6,8 @@ from . import services
 from cryptosite.settings import MEDIA_URL, NAV_BAR
 from django.core.cache import cache
 from django.views import View
-from django.views.generic import ListView
+from django.views.generic import ListView, DetailView
+from django.views.generic.base import ContextMixin
 from datetime import datetime
 from django.contrib.auth import get_user
 from .models import Order
@@ -15,19 +16,18 @@ import json
 import logging
 
 
-  
-def get_context():
-    context = {
-        'nav_bar': NAV_BAR,
-        'MEDIA_URL': MEDIA_URL,
-    }
-    return context
 
 logging.getLogger('main')
 
-class ExchangeView(View):
-    
+class BaseContext(ContextMixin):
 
+    extra_context = {
+        'nav_bar': NAV_BAR,
+        'MEDIA_URL': MEDIA_URL,
+    }
+
+class ExchangeView(View, BaseContext):
+    
     template_name = 'main/coins.html'
 
     async def get(self, request, *args, **kwargs):
@@ -38,20 +38,46 @@ class ExchangeView(View):
             return: HttpResponse
         """
         
-        context = get_context()
         try:
-            context['title'] = 'Главная'
-            context['give_coins'] = [coin for coin in await services.get_coins_to_give()]
-            context['receive_coins'] = [coin for coin in await services.get_coins_to_receive()]
-            context['exchange_ways'] = json.dumps(list([coin for coin in await services.get_exchange_ways()]))
-            context['give_tokens'] = json.dumps(list([coin for coin in await services.get_give_tokens()]))
-            context['receive_tokens'] = json.dumps(list([coin for coin in await services.get_receive_tokens()]))
             
-            return render(request=request, template_name=self.template_name, context=context)
+            
+            self.extra_context['title'] = 'Главная'
+            self.extra_context['give_coins'] = [
+                        coin for coin in await services.get_coins_to_give()
+                ]
+            
+            self.extra_context['receive_coins'] = [
+                        coin for coin in await services.get_coins_to_receive()
+                ]
+            
+            self.extra_context['exchange_ways'] = json.dumps(
+                list([coin for coin in await services.get_exchange_ways()]),
+                )
+            
+            self.extra_context['give_tokens'] = json.dumps(
+                list([coin for coin in await services.get_give_tokens()]),
+                )
+            
+            self.extra_context['receive_tokens'] = json.dumps(
+                list([coin for coin in await services.get_receive_tokens()]),
+                )
+            
+            return render(
+                request = request,
+                template_name = self.template_name,
+                context = self.get_context_data()
+            )
+        
         except Exception as exception:
+
             logging.exception(exception)
 
-            return render(request=request, template_name='InternalError.html', status=500, context=context)
+            return render(
+                request = request,
+                template_name = 'InternalError.html',
+                status = 500,
+                context = self.get_context_data()
+            )
         
     async def post(self, request, *args, **kwargs):
         
@@ -119,7 +145,7 @@ async def get_exchange_rate(request):
     except Exception as exception:
         logging.exception(exception)
 
-class MakeOrderView(View):
+class MakeOrderView(View, BaseContext):
     
     async def get(self, request, *args, **kwargs):
         """
@@ -130,35 +156,37 @@ class MakeOrderView(View):
         """
         
         try:
-            context = get_context()
+
             order = await services.get_order(kwargs['random_string'])
-            context['order'] = order
+            self.extra_context['order'] = order
 
             delta = datetime.now() - order.date_time.replace(tzinfo=None)
             total_seconds = 1200 - delta.total_seconds()
 
             if (total_seconds <= 0):
-                context['minutes'] = '00'
-                context['seconds'] = '00'
+                self.extra_context['minutes'] = '00'
+                self.extra_context['seconds'] = '00'
             else:
                 minutes = int(total_seconds / 60)
                 seconds = int(((total_seconds / 60) % 1) * 60)
-                context['minutes'] = minutes if minutes >= 10 else '0{0}'.format(minutes)
-                context['seconds'] = seconds if seconds >= 10 else '0{0}'.format(seconds)
+                self.extra_context['minutes'] = minutes if minutes >= 10 else '0{0}'.format(minutes)
+                self.extra_context['seconds'] = seconds if seconds >= 10 else '0{0}'.format(seconds)
                 
             return render(
-                request=request,
-                template_name='main/pay_order.html',
-                context=context,
+                request = request,
+                template_name = 'main/pay_order.html',
+                context = self.get_context_data(),
             )
+        
         except Exception as exception:
+
             logging.exception(exception)
 
             return render(
-                request=request,
-                template_name='InternalError.html',
-                status=500,
-                context=context,
+                request = request,
+                template_name = 'InternalError.html',
+                status = 500,
+                context = self.get_context_data(),
             )
 
     async def post(self, request, *args, **kwargs):
@@ -169,28 +197,66 @@ class MakeOrderView(View):
         """
 
         try:
-            order = await services.set_order_confirm(
+            order = await services.update_status(
                 request.POST['random_string'],
                 request.POST['confirm'],
             )
 
             return JsonResponse(
-                data={order.number, order.paid},
+                data={ order.number, order.paid },
                 safe=False,
-                json_dumps_params={'ensure_ascii': False},
+                json_dumps_params={ 'ensure_ascii': False },
             )
         except Exception as exception:
             logging.exception(exception)
 
-class OrdersList(ListView):
+class OrdersList(ListView, BaseContext):
     
     template_name = 'main/order_list.html'
-    extra_context = {'title': 'Заказы', 'MEDIA_URL': MEDIA_URL}
+    ordering = ['-date_time',]
     context_object_name = 'orders'
+    
+    def get_context_data(self, **kwargs):
+        self.extra_context['title'] = 'Заказы'
+        return super().get_context_data(**kwargs)
 
     def get_queryset(self):
 
         if not get_user(self.request).is_authenticated:
             return
 
-        return Order.objects.filter(user = get_user(self.request))
+        return Order.objects.filter(user = get_user(self.request)).order_by(*self.get_ordering())
+    
+    def get(self, request, *args, **kwargs):
+
+        if not get_user(request).is_authenticated:
+            # TODO сделать сделать страницу access denied
+            return 403
+        
+        return super().get(request, *args, **kwargs)
+
+class OrderInfo(DetailView, BaseContext):
+
+    model = Order
+    template_name = 'main/order_info.html'
+    context_object_name = 'order'
+    
+    def get_context_data(self, **kwargs):
+        self.extra_context['title'] = 'Заказ № {0}'.format(self.order.number)
+        return super().get_context_data(**kwargs)
+    
+    def get_object(self, queryset = None):
+        
+        self.order = Order.objects.get(random_string = self.kwargs['random_string'])
+        return self.order
+
+    def get(self, request, *args, **kwargs):
+
+        self.object = self.get_object()
+
+        if get_user(request) != self.object.user:
+            # TODO сделать страницу access denied
+            return 403
+        
+        context = self.get_context_data(object = self.object)
+        return self.render_to_response(context)

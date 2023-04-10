@@ -5,7 +5,7 @@ from cryptosite import settings
 
 urlpatterns = [
     path('news/', views.ArticleListView.as_view()),
-    path('news/<slug:article_slug>/', views.ArticlePageView.as_view(), name='article')
+    path('news/<slug:article_slug>/', views.ArticlePageView.as_view(), name='article'),
 ] 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

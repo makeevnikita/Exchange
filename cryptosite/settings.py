@@ -147,6 +147,7 @@ LOGGING = {
 }
 
 LOGIN_REDIRECT_URL = '/'
-NAV_BAR = [{'title': 'Правила обмена', 'url_name': 'rules'},
+NAV_BAR = [{'title': 'Главная', 'url_name': 'main'},
+           {'title': 'Правила обмена', 'url_name': 'rules'},
            {'title': 'Контакты', 'url_name': 'contacts'},
            ]

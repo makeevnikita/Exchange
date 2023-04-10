@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block header %}
+    <link rel="stylesheet" href="{% static 'main/css/pay_order.css' %}" type="text/css">
+{% endblock %}
+{% block content %}
+    <div class="content">
+        {{ order.number }}
+        {{ order.date_time }}
+    </div>
+<style>
+
+
+
+</style>
+{% endblock %}

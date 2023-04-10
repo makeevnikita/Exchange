@@ -3,6 +3,7 @@ from main.models import ReceiveCurrency, GiveCurrency, ReceiveGiveCurrencies,\
                         TokenStandart, CategoryPaymentMethod, Order, AddressTo
 from django.contrib.auth.models import User
 from django.urls import reverse
+from django.contrib.auth import login, logout
 
 
 
@@ -12,7 +13,7 @@ class ExchangeViewTest(TransactionTestCase):
         Тестирует ссылки
     """
 
-    def setUp(cls):
+    def setUp(self):
         
         """
             user - пользователь
@@ -23,8 +24,6 @@ class ExchangeViewTest(TransactionTestCase):
             receive_give_currencies - пути обмена (модель ManyToMany)
             addresses - адреса, на которые клиент переводит деньги
         """
-
-        user = User.objects.create_user(username='user_test', password='QWEzxc1_')
 
         tokens = [
              {'token_standart': 'BIP20', 'commission': 0},
@@ -103,20 +102,6 @@ class ExchangeViewTest(TransactionTestCase):
         for address in addresses:
             AddressTo.objects.create(**address)
 
-        Order.objects.create(number=1,
-            random_string='random_string', 
-            give_sum=100, 
-            receive_sum=100, 
-            give_id=GiveCurrency.objects.get(currency_name = 'Сбербанк').id,
-            receive_id=ReceiveCurrency.objects.get(currency_name = 'Etherium').id, 
-            give_token_standart_id=TokenStandart.objects.get(token_standart = 'Нет сети').id,
-            receive_token_standart_id=TokenStandart.objects.get(token_standart = 'BIP20').id,
-            receive_name='Без имени',
-            receive_address='Без адреса',
-            address_to_id=AddressTo.objects.get(currency__currency_name = 'Сбербанк').id,
-            user=User.objects.get(username = 'user_test'),
-        )
-
     @tag('fast')
     def test_main_page(self):
         
@@ -128,11 +113,68 @@ class ExchangeViewTest(TransactionTestCase):
         self.assertEqual(response.status_code, 200)
     
     @tag('fast')
-    def test_get_order_page(self):
+    def test_get_order_info(self):
         
         """
-            Тест траницы с информацией о заказе
+            Тест страницы с информацией о заказе
+            
+            Создаёт пользователя user и логинит его
+            Создаёт заказ, в котором user является заказчиком
+            Если user имеет доступ к своему заказа, то тест пройден
         """
 
+        credentials = { 'username': 'user_test', 'password': 'QWEzxc1_'}
+        user = User.objects.create_user(credentials)
+        self.client.force_login(user)
+
+        Order.objects.create(
+            number=1,
+            random_string='random_string', 
+            give_sum=100, 
+            receive_sum=100, 
+            give_id=GiveCurrency.objects.get(currency_name = 'Сбербанк').id,
+            receive_id=ReceiveCurrency.objects.get(currency_name = 'Etherium').id, 
+            give_token_standart_id=TokenStandart.objects.get(token_standart = 'Нет сети').id,
+            receive_token_standart_id=TokenStandart.objects.get(token_standart = 'BIP20').id,
+            receive_name='Без имени',
+            receive_address='Без адреса',
+            address_to_id=AddressTo.objects.get(currency__currency_name = 'Сбербанк').id,
+            user=user,
+        )
+
         response = self.client.get(reverse('order_info', args=['random_string',]))
+        
+        self.assertEqual(response.status_code, 200)
+
+    def test_get_orders(self):
+
+        """
+            Тест страницы со списком заказов
+            
+            Создаёт пользователя user и логинит его
+            Создаёт заказ, в котором user является заказчиком
+            Если user имеет доступ к списку своих заказов, то тест пройден
+        """
+
+        credentials = { 'username': 'user_test', 'password': 'QWEzxc1_'}
+        user = User.objects.create_user(credentials)
+        self.client.force_login(user)
+
+        Order.objects.create(
+            number=1,
+            random_string='random_string', 
+            give_sum=100, 
+            receive_sum=100, 
+            give_id=GiveCurrency.objects.get(currency_name = 'Сбербанк').id,
+            receive_id=ReceiveCurrency.objects.get(currency_name = 'Etherium').id, 
+            give_token_standart_id=TokenStandart.objects.get(token_standart = 'Нет сети').id,
+            receive_token_standart_id=TokenStandart.objects.get(token_standart = 'BIP20').id,
+            receive_name='Без имени',
+            receive_address='Без адреса',
+            address_to_id=AddressTo.objects.get(currency__currency_name = 'Сбербанк').id,
+            user=user,
+        )
+
+        response = self.client.get(reverse('orders'))
+        
         self.assertEqual(response.status_code, 200)

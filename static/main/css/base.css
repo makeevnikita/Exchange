@@ -1,0 +1,60 @@
+* {
+    margin: 0px;
+    box-sizing: border-box;
+}
+.header-content {
+    width: 100%;
+    background-color: #0a0a0a;
+    display: flex;
+    justify-content: space-around;
+}
+.logo {
+    max-height: 100px;
+    margin-left: 50px;
+}
+/*навигационная панель и панель с кнопками Вход, Регистрация, Выход*/
+.nav-bar, .auth {
+    max-height: 50%;
+    margin-top: 50px;
+    display: flex;
+}
+/*панель с кнопками Вход, Регистрация, Выход*/
+.auth {
+    font-size: 12px;
+    border: 1px white solid;
+    border-radius: 10px;
+    height: 30px;
+}
+/*Отключает оформление текста у ссылок */
+.nav-bar a, .auth a{
+  text-decoration: none;
+  color: white;
+}
+.header-content ul {
+  list-style: none;
+  display: flex;
+  color: white;
+  font-family: 'Press Start 2P', cursive;
+  margin: auto;
+}
+.header-content ul li{
+  margin-right: 25px;
+}
+.header-content ul li:hover::marker{
+  content: '>';
+}
+.footer {
+  display: flex;
+  justify-content: space-around;
+  height: 150px;
+  background-color: #0a0a0a;
+}
+.footer ul {
+    list-style: none;
+    font-family: 'Roboto', cursive;
+    margin: 50px;
+}
+.footer a {
+    text-decoration: none;
+    color: white;
+}

@@ -158,13 +158,13 @@ function start() {
     data['receive_address'] = null
 
     give_payment_method_id = jQuery('#give-table .selected')[0].getAttribute('payment-method')//Споособ оплаты
-    network = jQuery('#give-networks-body .custom-radio:checked+label')[0].closest('DIV').children[0].id.match(/(\d+)/)[0]
+    network = jQuery('#give-networks-body .custom-radio:checked+label')[0]
     if (give_payment_method_id == 1) {
         //Банковская карта
         data['give_address'] = jQuery('#give-input-bank-card').val()
     } else if (give_payment_method_id == 2) {
         //Криптовалюта
-        token_standart = network ? network : 1
+        token_standart = network ? network.closest('DIV').children[0].id.match(/(\d+)/)[0] : 1
         data['give_token_standart_id'] = token_standart ? token_standart : ''
     } else if (give_payment_method_id == 3) {
         //Онлайн кошелёк
@@ -172,13 +172,13 @@ function start() {
     }
     
     receive_payment_method_id = jQuery('#receive-table .selected')[0].getAttribute('payment-method')//Споособ оплаты
-    network = jQuery('#receive-networks-body .custom-radio:checked+label')[0].closest('DIV').children[0].id.match(/(\d+)/)[0]
+    network = jQuery('#receive-networks-body .custom-radio:checked+label')[0]
     if (receive_payment_method_id == 1) {
         //Банковская карта
         data['receive_address'] = jQuery('#receive-input-bank-card').val()
     } else if (receive_payment_method_id == 2) {
         //Криптовалюта
-        token_standart = network ? network : 1
+        token_standart = network ? network.closest('DIV').children[0].id.match(/(\d+)/)[0] : 1
         data['receive_token_standart_id'] = token_standart ? token_standart : '' 
         data['receive_address'] = jQuery('#receive_input_crypto').val()
     } else if (receive_payment_method_id == 3) {
