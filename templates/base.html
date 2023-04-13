@@ -6,7 +6,7 @@
         <link rel="stylesheet" href="{% static 'main/css/base.css' %}" type="text/css">
         {% block header %}
         {% endblock %}
-        <title>{{ title }}</title>
+        <title>{{ titile }}</title>
     </head>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:wght@300&display=swap" rel="stylesheet"> 
     <body>
@@ -23,23 +23,25 @@
                     </ul>
                 </div>
                 <div class="auth">
-                    <ul>
-                        {% if request.user.is_authenticated %}
-                            <li>
-                                <a href="{% url 'orders' %}">Заказы</a>
-                            </li>
-                            <li>
-                                <a href="{% url 'logout' %}">Выход</a>
-                            </li>
-                        {% else %}
-                            <li>
-                                <a href="{% url 'login' %}">Вход</a>
-                            </li>
-                            <li>
-                                <a href="{% url 'register' %}">Регистрация</a>
-                            </li>
-                        {% endif %}
-                    </ul>
+                    <div>
+                        <ul>
+                            {% if request.user.is_authenticated %}
+                                <li>
+                                    <a href="{% url 'orders' %}">Заказы</a>
+                                </li>
+                                <li>
+                                    <a href="{% url 'logout' %}">Выход</a>
+                                </li>
+                            {% else %}
+                                <li>
+                                    <a href="{% url 'login' %}">Вход</a>
+                                </li>
+                                <li>
+                                    <a href="{% url 'register' %}">Регистрация</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </div>
                 </div>
             </div>
         </header>

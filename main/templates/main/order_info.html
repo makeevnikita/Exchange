@@ -1,8 +1,7 @@
-{% extends 'main/base.html' %}
+{% extends 'base.html' %}
 {% load static %}
 {% block header %}
-  <link rel="stylesheet" href="{% static 'main/css/index.css' %}" type="text/css">
-  <link rel="stylesheet" href="{% static 'main/css/pay_order.css' %}" type="text/css">
+  <link rel="stylesheet" href="{% static 'main/css/order_info.css' %}" type="text/css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <script src="/static/admin/js/vendor/jquery/jquery.js"></script>
@@ -12,6 +11,9 @@
 <div class="wrap">
   <div class="content">
     <div class="top">
+      <div class="head">
+        <div class="executed">{{ order.status.status }}</div>
+      </div>
       <h1 style="text-align: center;">Заявка {{ order.number }}</h1>
       <div class="timeout_wrap">
         <div id="timeout">Время вышло</div>
@@ -31,6 +33,10 @@
         </div>
       </div>
     </div>
+    <br>
+    <hr>
+    <br>
+    {% if minutes != '00' and seconds != '00' %}
     <div class="middle">
       <div class="step">
         <div class="left"><p>1</p></div>
@@ -40,14 +46,18 @@
         <p>Номер карты</p>
         <div class="text">
           <div>{{ order.address_to }}</div>
-          <div class="copy">></div>
+          <button style="border: none;" class="copy">
+            <img src="{{ IMAGES_URL }}copy-icon.svg">
+          </button>
         </div>
       </div>
       <div class="item">
         <p>Сумма</p>
         <div class="text">
           <div>{{ order.give_sum }} {{ order.give.currency_name_short }}</div>
-          <div class="copy">></div>
+          <button style="border: none;" class="copy">
+            <img src="{{ IMAGES_URL }}copy-icon.svg">
+          </button>
         </div>
       </div> 
       <div class="step">
@@ -71,6 +81,21 @@
       <button id="confirm" type="submit">Я оплатил</button>
       <button id="cancel" type="submit">Отмена</button>
     </div>
+    {% else %}
+      <div class="middle">
+        <p>Обмен {{ order.give_sum }} {{ order.give.currency_name_short }} 
+          на {{ order.receive_sum}} {{ order.receive.currency_name_short }}</p>
+          <div class="item">
+            <p>На адрес</p>
+            <div class="text">
+              <div>{{ order.address_to }}</div>
+              <button style="border: none;" class="copy">
+                <img src="{{ IMAGES_URL }}copy-icon.svg">
+              </button>
+            </div>
+          </div>
+      </div>
+    {% endif %}
   </div>
 </div>
 <div id="openModal" class="modal">
@@ -97,7 +122,11 @@
     </div>
   </div>
 </div>
+<style>
+</style>
 {% endblock %}
 {% block script %}
-  <script type="text/javascript" src="{% static 'main/js/pay_order.js'%}"></script>
+  {% if minutes != '00' and seconds != '00' %}
+    <script type="text/javascript" src="{% static 'main/js/order_timer.js'%}"></script>
+  {% endif %}
 {% endblock %}

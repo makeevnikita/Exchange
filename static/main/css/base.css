@@ -2,6 +2,14 @@
     margin: 0px;
     box-sizing: border-box;
 }
+body {
+  font-family: 'Roboto';
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #292b2c;
+  background-color: #fff;
+} 
 .header-content {
     width: 100%;
     background-color: #0a0a0a;

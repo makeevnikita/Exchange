@@ -8,7 +8,8 @@ body {
   max-width: 900px;
   padding: 30px 30px;
   min-height: 100%;
-  border-radius: 10px;
+  border-radius: 15px;
+  background-color: white;
 }
 .text {
   display: flex;
@@ -16,10 +17,21 @@ body {
   min-height: 40px;
   border-radius: 15px;
   background-color: #f2f4f9;
+  align-items: center;
 }
 .text div {
   margin: auto 0px;
   padding: 0px 20px;
+}
+.copy img {
+  height: 2rem;
+  border-radius: 15px;
+  background-color: #dddcdc;
+  margin-right: 20px;
+}
+.copy img:hover {
+  background-color: #a3a3a3;
+  cursor: pointer;
 }
 .top {
   border-radius: 50px 50px;
@@ -27,7 +39,6 @@ body {
 .check-claim-content {
   display: flex;
   justify-content: space-around;
-  background-color: rgb(255, 255, 255);
   padding: 5px 0px;
   font-size: 24px;
   font-weight: bolder;
@@ -35,6 +46,8 @@ body {
 .check {
   display: flex;
   width: 300px;
+  background-color: #f2f4f9;
+  border-radius: 15px;
 }
 .check div {
   margin: auto 5px;
@@ -91,7 +104,6 @@ body {
   border-radius: 15px;
   border: 0px;
   margin: 0px 15px;
-  border-radius: 10px;
   background-color: #f7a600;
   color: #242629;
   border: #242629 2px solid;
@@ -100,6 +112,7 @@ body {
 }
 .bottom button:hover {
     background-color: rgb(255, 136, 0);
+    cursor: pointer;
 }
 /* Таймер */
 .timeout_wrap {
@@ -153,7 +166,6 @@ body {
 .modal input {
   margin: 0px 15px;
   height: 50px;
-  border: none;
   border-radius: 10px;
   background-color: #f7a600;
   color: #242629;
@@ -218,4 +230,11 @@ body {
 }
 .modal-footer input:hover {
   background-color: rgb(255, 136, 0);
+}
+.executed {
+  background-color: black;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 10px;
+  text-align: center;
 }

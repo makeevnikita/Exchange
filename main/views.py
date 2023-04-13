@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from django.core.exceptions import PermissionDenied
 from django.core.cache import cache
 from django.urls import reverse
-from cryptosite.settings import MEDIA_URL, NAV_BAR
+from cryptosite.settings import MEDIA_URL, NAV_BAR, IMAGES_URL
 from django.views import View
 from django.views.generic import ListView, DetailView
 from django.views.generic.base import ContextMixin
@@ -156,6 +156,7 @@ class OrderView(DetailView):
     extra_context = {
         'nav_bar': NAV_BAR,
         'MEDIA_URL': MEDIA_URL,
+        'IMAGES_URL': IMAGES_URL,
         } 
     
     async def get_object(self, queryset = None):
@@ -166,22 +167,37 @@ class OrderView(DetailView):
 
         return await services.get_order(self.kwargs['random_string'])
     
+    def calculate_the_time(self, *args, **kwargs):
+
+        """
+            Считает сколько времени осталось на оплату
+
+            return: dict
+        """
+
+        time = {}
+        delta = datetime.now() - kwargs['date_time'].replace(tzinfo=None)
+        total_seconds = 1200 - delta.total_seconds()
+        if (total_seconds <= 0):
+            time['minutes'] = '00'
+            time['seconds'] = '00'
+        else:
+            minutes = int(total_seconds / 60)
+            seconds = int(((total_seconds / 60) % 1) * 60)
+            time['minutes'] = minutes if minutes >= 10 else '0{0}'.format(minutes)
+            time['seconds'] = seconds if seconds >= 10 else '0{0}'.format(seconds)
+
+        return time
+    
     def get_context_data(self, **kwargs):
         
-        order = kwargs['object']
         if get_user(self.request) != self.object.user:
             raise PermissionDenied
-        else:
-            delta = datetime.now() - order.date_time.replace(tzinfo=None)
-            total_seconds = 1200 - delta.total_seconds()
-            if (total_seconds <= 0):
-                self.extra_context['minutes'] = '00'
-                self.extra_context['seconds'] = '00'
-            else:
-                minutes = int(total_seconds / 60)
-                seconds = int(((total_seconds / 60) % 1) * 60)
-                self.extra_context['minutes'] = minutes if minutes >= 10 else '0{0}'.format(minutes)
-                self.extra_context['seconds'] = seconds if seconds >= 10 else '0{0}'.format(seconds)
+        
+        time = self.calculate_the_time(date_time = self.object.date_time)
+
+        self.extra_context['minutes'] = time['minutes']
+        self.extra_context['seconds'] = time['seconds']
 
         return super().get_context_data(**kwargs)
     
@@ -228,7 +244,11 @@ class OrderView(DetailView):
             logging.exception(exception)
 
 class OrdersList(ListView):
-    
+
+    extra_context = {
+        'nav_bar': NAV_BAR,
+        'MEDIA_URL': MEDIA_URL,
+        } 
     template_name = 'main/order_list.html'
     ordering = ['-date_time',]
     context_object_name = 'orders'
@@ -254,8 +274,9 @@ class OrdersList(ListView):
             
             return: HttpResponse
         """
+        
         try:
-            super().get(request, *args, **kwargs)
+            return super().get(request, *args, **kwargs)
         except PermissionDenied:
             return redirect(reverse('login'))
         except Exception as exception:
