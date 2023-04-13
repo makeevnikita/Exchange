@@ -2,9 +2,6 @@
 * {
 	margin: 0px;
 }
-.container {
-  font-family: 'Roboto', cursive;
-}
 .coins {
     display: flex;
     flex-wrap: wrap;

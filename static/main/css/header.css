@@ -3,15 +3,11 @@
   background-color: #0a0a0a;
   display: flex;
   justify-content: space-around;
+  align-items: center;
 }
 .logo {
   max-height: 100px;
   margin-left: 50px;
-}
-.nav-bar, .auth {
-  max-height: 50%;
-  margin-top: 50px;
-  display: flex;
 }
 .auth {
   font-size: 12px;

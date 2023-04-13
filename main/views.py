@@ -1,16 +1,17 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import JsonResponse
+from django.core.exceptions import PermissionDenied
 from django.core.cache import cache
-from . import exchangenetwork as network
-from . import services
+from django.urls import reverse
 from cryptosite.settings import MEDIA_URL, NAV_BAR
-from django.core.cache import cache
 from django.views import View
 from django.views.generic import ListView, DetailView
 from django.views.generic.base import ContextMixin
 from datetime import datetime
 from django.contrib.auth import get_user
 from .models import Order
+from . import exchangenetwork as network
+from . import services
 
 import json
 import logging
@@ -19,64 +20,66 @@ import logging
 
 logging.getLogger('main')
 
-class BaseContext(ContextMixin):
+class ExchangeView(View, ContextMixin):
+    
+    """Главная страница сайта"""
 
+    template_name = 'main/coins.html'
     extra_context = {
         'nav_bar': NAV_BAR,
         'MEDIA_URL': MEDIA_URL,
+        'title': 'Главная',
     }
 
-class ExchangeView(View, BaseContext):
-    
-    template_name = 'main/coins.html'
+    async def get_objects(self):
+        
+        self.extra_context['give_coins'] = [
+                coin for coin in await services.get_coins_to_give()
+            ]
+        self.extra_context['receive_coins'] = [
+                    coin for coin in await services.get_coins_to_receive()
+            ]
+        self.extra_context['exchange_ways'] = json.dumps(
+            list([coin for coin in await services.get_exchange_ways()]),
+            )
+        self.extra_context['give_tokens'] = json.dumps(
+            list([coin for coin in await services.get_give_tokens()]),
+            )
+        self.extra_context['receive_tokens'] = json.dumps(
+            list([coin for coin in await services.get_receive_tokens()]),
+            )
+        
+    async def get_context_data(self, **kwargs):
+
+        try:
+            await self.get_objects()
+        except Exception as exception:
+            logging.exception(exception)
+            
+            self.template_name = 'InternalError.html'
+            
+        return super().get_context_data(**kwargs)
 
     async def get(self, request, *args, **kwargs):
 
         """
             Главная страница сайта.
+            
+            Здесь выполняются асинхронные запросы в базу данных
+            Запросы вытягивают: валюту, которую может отдать клиент
+                                валюту, которую может получить клиент
+                                сети валют, в которых мы принимаем
+                                сети валют, в которых мы отдаём
+                                пути обмена (модель ManyToMany)
 
             return: HttpResponse
         """
-        
-        try:
-            
-            
-            self.extra_context['title'] = 'Главная'
-            self.extra_context['give_coins'] = [
-                        coin for coin in await services.get_coins_to_give()
-                ]
-            
-            self.extra_context['receive_coins'] = [
-                        coin for coin in await services.get_coins_to_receive()
-                ]
-            
-            self.extra_context['exchange_ways'] = json.dumps(
-                list([coin for coin in await services.get_exchange_ways()]),
-                )
-            
-            self.extra_context['give_tokens'] = json.dumps(
-                list([coin for coin in await services.get_give_tokens()]),
-                )
-            
-            self.extra_context['receive_tokens'] = json.dumps(
-                list([coin for coin in await services.get_receive_tokens()]),
-                )
-            
-            return render(
-                request = request,
+
+        context = await self.get_context_data()
+        return render(
+                request = self.request,
                 template_name = self.template_name,
-                context = self.get_context_data()
-            )
-        
-        except Exception as exception:
-
-            logging.exception(exception)
-
-            return render(
-                request = request,
-                template_name = 'InternalError.html',
-                status = 500,
-                context = self.get_context_data()
+                context = context,
             )
         
     async def post(self, request, *args, **kwargs):
@@ -110,12 +113,13 @@ class ExchangeView(View, BaseContext):
         return JsonResponse(
             data={'link': 'start_exchange/exchange/{0}'.format(random_string)},
         )
-    
+
 def rules(request):
 
     if (request.method == 'GET'):
         context = {
-            'nav_bar': NAV_BAR
+            'nav_bar': NAV_BAR,
+            'MEDIA_URL': MEDIA_URL,
         }
         return render(request, 'main/rules.html', context=context)
 
@@ -144,25 +148,32 @@ async def get_exchange_rate(request):
         )
     except Exception as exception:
         logging.exception(exception)
-
-class MakeOrderView(View, BaseContext):
+ 
+class OrderView(DetailView):
     
-    async def get(self, request, *args, **kwargs):
-        """
-            Находит заказ, считает сколько прошло времени с момента создания заказа.
-            Клиент видит данные заказа и сколько времени осталось, чтобы оплатить его.
+    template_name = 'main/order_info.html'
+    context_object_name = 'order'
+    extra_context = {
+        'nav_bar': NAV_BAR,
+        'MEDIA_URL': MEDIA_URL,
+        } 
+    
+    async def get_object(self, queryset = None):
 
-            return: HttpResponse
         """
+            Находи заказ по атрибуту "random_string"
+        """
+
+        return await services.get_order(self.kwargs['random_string'])
+    
+    def get_context_data(self, **kwargs):
         
-        try:
-
-            order = await services.get_order(kwargs['random_string'])
-            self.extra_context['order'] = order
-
+        order = kwargs['object']
+        if get_user(self.request) != self.object.user:
+            raise PermissionDenied
+        else:
             delta = datetime.now() - order.date_time.replace(tzinfo=None)
             total_seconds = 1200 - delta.total_seconds()
-
             if (total_seconds <= 0):
                 self.extra_context['minutes'] = '00'
                 self.extra_context['seconds'] = '00'
@@ -171,23 +182,29 @@ class MakeOrderView(View, BaseContext):
                 seconds = int(((total_seconds / 60) % 1) * 60)
                 self.extra_context['minutes'] = minutes if minutes >= 10 else '0{0}'.format(minutes)
                 self.extra_context['seconds'] = seconds if seconds >= 10 else '0{0}'.format(seconds)
-                
-            return render(
-                request = request,
-                template_name = 'main/pay_order.html',
-                context = self.get_context_data(),
-            )
-        
+
+        return super().get_context_data(**kwargs)
+    
+    async def get(self, request, *args, **kwargs):
+
+        """
+            Находит заказ, считает сколько прошло времени с момента создания заказа.
+            Клиент видит данные заказа и сколько времени осталось, чтобы оплатить его.
+            
+            return: HttpResponse
+        """
+
+        try:
+            self.object = await self.get_object()
+        except PermissionDenied:
+            self.extra_context['title'] = 'Доступ запрещён'
         except Exception as exception:
-
             logging.exception(exception)
+            self.template_name = 'InternalError.html'
+        else:
+            context = self.get_context_data(object = self.object)
 
-            return render(
-                request = request,
-                template_name = 'InternalError.html',
-                status = 500,
-                context = self.get_context_data(),
-            )
+        return self.render_to_response(context)
 
     async def post(self, request, *args, **kwargs):
         """
@@ -210,53 +227,38 @@ class MakeOrderView(View, BaseContext):
         except Exception as exception:
             logging.exception(exception)
 
-class OrdersList(ListView, BaseContext):
+class OrdersList(ListView):
     
     template_name = 'main/order_list.html'
     ordering = ['-date_time',]
     context_object_name = 'orders'
-    
-    def get_context_data(self, **kwargs):
-        self.extra_context['title'] = 'Заказы'
-        return super().get_context_data(**kwargs)
 
     def get_queryset(self):
 
+        """
+            Находит все заказы клиента, сортируя их по убыванию даты
+
+            Если клиент анонимный, то возникает исключение PermissionDenied
+        """
+
         if not get_user(self.request).is_authenticated:
-            return
+            raise PermissionDenied
 
         return Order.objects.filter(user = get_user(self.request)).order_by(*self.get_ordering())
     
     def get(self, request, *args, **kwargs):
-
-        if not get_user(request).is_authenticated:
-            # TODO сделать сделать страницу access denied
-            return 403
         
-        return super().get(request, *args, **kwargs)
-
-class OrderInfo(DetailView, BaseContext):
-
-    model = Order
-    template_name = 'main/order_info.html'
-    context_object_name = 'order'
-    
-    def get_context_data(self, **kwargs):
-        self.extra_context['title'] = 'Заказ № {0}'.format(self.order.number)
-        return super().get_context_data(**kwargs)
-    
-    def get_object(self, queryset = None):
-        
-        self.order = Order.objects.get(random_string = self.kwargs['random_string'])
-        return self.order
-
-    def get(self, request, *args, **kwargs):
-
-        self.object = self.get_object()
-
-        if get_user(request) != self.object.user:
-            # TODO сделать страницу access denied
-            return 403
-        
-        context = self.get_context_data(object = self.object)
-        return self.render_to_response(context)
+        """
+            Выводит спсиок заказов для зарегистрированного клиента.
+            Если клиент анонимный, то переводит его на страницу login.
+            
+            return: HttpResponse
+        """
+        try:
+            super().get(request, *args, **kwargs)
+        except PermissionDenied:
+            return redirect(reverse('login'))
+        except Exception as exception:
+            logging.exception(exception)
+            self.template_name = 'InternalError.html'
+            # TODO

@@ -7,7 +7,7 @@ from django.contrib.auth import login, logout
 
 
 
-class ExchangeViewTest(TransactionTestCase):
+class UrlTest(TransactionTestCase):
 
     """
         Тестирует ссылки
@@ -111,16 +111,21 @@ class ExchangeViewTest(TransactionTestCase):
 
         response = self.client.get(reverse('main'))
         self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'main/coins.html')
     
     @tag('fast')
     def test_get_order_info(self):
         
         """
-            Тест страницы с информацией о заказе
+            Пользователь имеет доступ к своему заказу
             
             Создаёт пользователя user и логинит его
             Создаёт заказ, в котором user является заказчиком
-            Если user имеет доступ к своему заказа, то тест пройден
+            user пытается получить доступ к своему заказу
+
+            Причина по которой тест не пройден: 
+                Ответ сервера не содержит шаблон "main/order_info.html"
+                Код ответа не равен 200
         """
 
         credentials = { 'username': 'user_test', 'password': 'QWEzxc1_'}
@@ -143,22 +148,62 @@ class ExchangeViewTest(TransactionTestCase):
         )
 
         response = self.client.get(reverse('order_info', args=['random_string',]))
-        
+        self.assertTemplateUsed(response, 'main/order_info.html')
         self.assertEqual(response.status_code, 200)
 
-    def test_get_orders(self):
-
+    @tag('fast')
+    def test_user_dont_have_access_to_order_info(self):
+        
         """
-            Тест страницы со списком заказов
+            Пользователь не имеет доступа к чужому заказу
             
-            Создаёт пользователя user и логинит его
+            Создаёт пользователя user
             Создаёт заказ, в котором user является заказчиком
-            Если user имеет доступ к списку своих заказов, то тест пройден
+            Аноним пытается получить доступ к созданному заказу
+
+            Причина по которой тест не пройден: 
+                Ответ сервера не содержит шаблон "403.html"
+                Код состояния не равен 403
         """
 
         credentials = { 'username': 'user_test', 'password': 'QWEzxc1_'}
         user = User.objects.create_user(credentials)
-        self.client.force_login(user)
+
+        Order.objects.create(
+            number=1,
+            random_string='random_string', 
+            give_sum=100, 
+            receive_sum=100, 
+            give_id=GiveCurrency.objects.get(currency_name = 'Сбербанк').id,
+            receive_id=ReceiveCurrency.objects.get(currency_name = 'Etherium').id, 
+            give_token_standart_id=TokenStandart.objects.get(token_standart = 'Нет сети').id,
+            receive_token_standart_id=TokenStandart.objects.get(token_standart = 'BIP20').id,
+            receive_name='Без имени',
+            receive_address='Без адреса',
+            address_to_id=AddressTo.objects.get(currency__currency_name = 'Сбербанк').id,
+            user=user,
+        )
+
+        response = self.client.get(reverse('order_info', args=['random_string',]))
+        self.assertEqual(response.status_code, 403)
+        self.assertTemplateUsed(response, '403.html')
+
+    @tag('fast')
+    def test_get_orders(self):
+
+        """
+            Пользователь не имеет доступа к чужому списку заказов
+            
+            Создаёт пользователя user
+            Создаёт заказ, в котором user является заказчиком
+
+            Причина по которой тест не пройден:
+                Код ответа не равен 403
+                Ответ сервера не содержит шаблон "main/orders.html"
+        """
+
+        credentials = { 'username': 'user_test', 'password': 'QWEzxc1_'}
+        user = User.objects.create_user(credentials)
 
         Order.objects.create(
             number=1,
@@ -176,5 +221,4 @@ class ExchangeViewTest(TransactionTestCase):
         )
 
         response = self.client.get(reverse('orders'))
-        
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 302)
