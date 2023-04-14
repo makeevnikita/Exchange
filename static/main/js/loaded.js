@@ -186,7 +186,7 @@ function start() {
         data['receive_address'] = jQuery('#receive-input-online-wallet').val()
     }
     jQuery.ajax({
-        url: 'start_exchange/',
+        url: `make_order/`,
         method: 'post',
         dataType: 'json',
         data: data,

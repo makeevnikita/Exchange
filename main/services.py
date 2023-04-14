@@ -3,12 +3,15 @@ from django.core.cache import cache
 from asgiref.sync import sync_to_async
 from django.db.models import Max
 from .exceptions import *
+from django.shortcuts import get_object_or_404
 
 import random
 import string
+import logging
 
 
 
+logging.getLogger('main')
 
 @sync_to_async
 def get_coins_to_give():
@@ -196,13 +199,21 @@ async def get_order(random_string):
 
 async def update_status(random_string, confirm):
 
+    order = None
     try:
-        order = await get_order(random_string)
+        order = await get_object_or_404(Order, random_string = random_string)
+    except Exception as exception:
+        logging.exception(exception)
+        raise
+        # TODO обработать 
+    print(f'\n\n{bool(confirm)} {confirm}\n\n')
+    if confirm:
         order.paid = confirm
         order.status = OrderStatus.objects.get(id = 2)
         order.save()
-    except Exception as exception:
-        raise GetOrderException(random_string) from exception
+        return order
+    else:
+        order.delete()
 
 def get_address(give_address_id, token_standart_id):
 

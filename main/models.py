@@ -1,10 +1,11 @@
 from django.db import models
-from cryptosite.settings import STATIC_ROOT
 from django.utils import timezone
 from django.contrib.auth.models import User
 from django.urls import reverse
+from django.core.cache import cache
+from django.core.exceptions import ObjectDoesNotExist
 
-
+    
 
 class TokenStandart(models.Model):
 
@@ -255,3 +256,20 @@ class Order(models.Model):
     def get_absolute_url(self):
         return reverse('order_info', kwargs={'random_string': self.random_string })
     
+    def get_one_order(self, random_string):
+        cache_key = 'Order.get_one_order(random_string={0})'.format(self.random_string)
+        cache_value = cache.get(cache_key)
+        if cache_value is not None:
+            return cache_value
+        order = Order.objects.get(random_string=random_string)
+        cache.set(cache_key, cache_value, 1 * 60 * 60)
+        return order
+    
+    def get_objects(self, user):
+        cache_key = 'Orders.get_orders(user={0})'.format(user.username)
+        cache_value = cache.get(cache_key)
+        if cache_value is not None:
+            return cache_value
+        order = Order.objects.filter(user=user)
+        cache.set(cache_key, cache_value, 1 * 60 * 60)
+        return order

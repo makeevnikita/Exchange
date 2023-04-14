@@ -223,3 +223,36 @@ class UrlTest(TransactionTestCase):
 
         response = self.client.get(reverse('orders'))
         self.assertEqual(response.status_code, 302)
+
+    @tag('fast')
+    def test_Http404_instead_order(self):
+
+        """
+            Тест пытается вынуть заказ, которого не существует и получает 404
+
+            Причина по которой тест не пройден:
+                Код ответа не равен 404
+                Ответ сервера не содержит шаблон "404.html"
+        """
+
+        response = self.client.get(reverse('order_info', args=['qwerty',]))
+        self.assertEqual(response.status_code, 404)
+        self.assertTemplateUsed(response, '404.html')
+
+    @tag('fast')
+    def test_empty_orders(self):
+
+        """
+            Клиент видит пустой список заказов
+
+            Причина по которой тест не пройден:
+                Код ответа не равен 200
+                Ответ сервера не содержит шаблон "order_list.html"
+        """
+
+        credentials = { 'username': 'user_test', 'password': 'QWEzxc1_'}
+        user = User.objects.create_user(credentials)
+        self.client.force_login(user)
+        response = self.client.get(reverse('orders'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'main/order_list.html')

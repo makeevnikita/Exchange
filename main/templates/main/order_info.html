@@ -36,7 +36,7 @@
     <br>
     <hr>
     <br>
-    {% if minutes != '00' and seconds != '00' %}
+    {% if minutes and seconds != '00' %}
     <div class="middle">
       <div class="step">
         <div class="left"><p>1</p></div>
@@ -126,7 +126,8 @@
 </style>
 {% endblock %}
 {% block script %}
-  {% if minutes != '00' and seconds != '00' %}
+  {% if minutes and seconds != '00' %}
     <script type="text/javascript" src="{% static 'main/js/order_timer.js'%}"></script>
+    <script type="text/javascript" src="{% static 'main/js/order_info.js'%}"></script>
   {% endif %}
 {% endblock %}

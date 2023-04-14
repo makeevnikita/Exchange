@@ -1,9 +1,8 @@
 from django.shortcuts import render, redirect
-from django.http import JsonResponse
-from django.core.exceptions import PermissionDenied
+from django.http import JsonResponse, Http404
+from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
 from django.core.cache import cache
 from django.urls import reverse
-from cryptosite.settings import MEDIA_URL, NAV_BAR, IMAGES_URL
 from django.views import View
 from django.views.generic import ListView, DetailView
 from django.views.generic.base import ContextMixin
@@ -12,6 +11,7 @@ from django.contrib.auth import get_user
 from .models import Order
 from . import exchangenetwork as network
 from . import services
+from cryptosite.settings import MEDIA_URL, NAV_BAR, IMAGES_URL
 
 import json
 import logging
@@ -19,6 +19,11 @@ import logging
 
 
 logging.getLogger('main')
+
+class Cache:
+
+    cache_key = None
+
 
 class ExchangeView(View, ContextMixin):
     
@@ -56,7 +61,7 @@ class ExchangeView(View, ContextMixin):
         except Exception as exception:
             logging.exception(exception)
             
-            self.template_name = 'InternalError.html'
+            self.template_name = '500.html'
             
         return super().get_context_data(**kwargs)
 
@@ -111,7 +116,7 @@ class ExchangeView(View, ContextMixin):
         )
 
         return JsonResponse(
-            data={'link': 'start_exchange/exchange/{0}'.format(random_string)},
+            data={'link': 'order/{0}'.format(random_string)},
         )
 
 def rules(request):
@@ -153,19 +158,15 @@ class OrderView(DetailView):
     
     template_name = 'main/order_info.html'
     context_object_name = 'order'
+    queryset = Order.objects.all()
+    slug_field = 'random_string'
+    slug_url_kwarg = 'random_string'
+
     extra_context = {
-        'nav_bar': NAV_BAR,
-        'MEDIA_URL': MEDIA_URL,
-        'IMAGES_URL': IMAGES_URL,
-        } 
-    
-    async def get_object(self, queryset = None):
-
-        """
-            Находи заказ по атрибуту "random_string"
-        """
-
-        return await services.get_order(self.kwargs['random_string'])
+            'nav_bar': NAV_BAR,
+            'MEDIA_URL': MEDIA_URL,
+            'IMAGES_URL': IMAGES_URL,
+        }
     
     def calculate_the_time(self, *args, **kwargs):
 
@@ -191,13 +192,19 @@ class OrderView(DetailView):
     
     def get_context_data(self, **kwargs):
         
-        if get_user(self.request) != self.object.user:
-            raise PermissionDenied
+        self.object = kwargs['object']
         
-        time = self.calculate_the_time(date_time = self.object.date_time)
+        if self.object:
 
-        self.extra_context['minutes'] = time['minutes']
-        self.extra_context['seconds'] = time['seconds']
+            if get_user(self.request) != self.object.user:
+                raise PermissionDenied
+            
+            time = self.calculate_the_time(date_time = self.object.date_time)
+
+            self.extra_context['title'] = 'Заказ №{0}'.format(self.object.number)
+
+            self.extra_context['minutes'] = time['minutes']
+            self.extra_context['seconds'] = time['seconds']
 
         return super().get_context_data(**kwargs)
     
@@ -210,17 +217,28 @@ class OrderView(DetailView):
             return: HttpResponse
         """
 
+        status_code = 200
         try:
-            self.object = await self.get_object()
-        except PermissionDenied:
-            self.extra_context['title'] = 'Доступ запрещён'
+            self.object = Order().get_one_order(
+                random_string = kwargs['random_string'],)
+        except ObjectDoesNotExist as exception:
+            logging.exception(exception)
+            self.template_name = '404.html'
+            status_code = 404
+        except PermissionDenied as exception:
+            logging.exception(exception)
+            status_code = 403
         except Exception as exception:
             logging.exception(exception)
-            self.template_name = 'InternalError.html'
-        else:
-            context = self.get_context_data(object = self.object)
-
-        return self.render_to_response(context)
+            self.template_name = '500.html'
+            status_code = 500
+        
+        return render(
+                    request = request,
+                    template_name = self.template_name,
+                    context = self.get_context_data(object = getattr(self, 'object', None)),
+                    status = status_code,
+                )
 
     async def post(self, request, *args, **kwargs):
         """
@@ -228,30 +246,33 @@ class OrderView(DetailView):
 
             return: JsonResponse
         """
-
-        try:
+        if request.POST['confirm']:
             order = await services.update_status(
-                request.POST['random_string'],
-                request.POST['confirm'],
-            )
-
+                    kwargs['random_string'],
+                    json.loads(request.POST.get('confirm')),
+                )
             return JsonResponse(
-                data={ order.number, order.paid },
-                safe=False,
-                json_dumps_params={ 'ensure_ascii': False },
-            )
-        except Exception as exception:
-            logging.exception(exception)
+                    data={ 'link': reverse('main') },
+                    safe=False,
+                    json_dumps_params={ 'ensure_ascii': False },
+                )
+        else:
+            try:
+                Order.objects.delete(random_string = kwargs['random_string'])
+                return redirect('orders')
+            except Exception as exception:
+                logging.exception(exception)
 
 class OrdersList(ListView):
 
-    extra_context = {
-        'nav_bar': NAV_BAR,
-        'MEDIA_URL': MEDIA_URL,
-        } 
     template_name = 'main/order_list.html'
-    ordering = ['-date_time',]
     context_object_name = 'orders'
+    extra_context = {
+            'nav_bar': NAV_BAR,
+            'MEDIA_URL': MEDIA_URL,
+            'title': 'Заказы',
+        } 
+    ordering = ['-date_time',]
 
     def get_queryset(self):
 
@@ -263,8 +284,8 @@ class OrdersList(ListView):
 
         if not get_user(self.request).is_authenticated:
             raise PermissionDenied
-
-        return Order.objects.filter(user = get_user(self.request)).order_by(*self.get_ordering())
+        
+        return Order().get_objects(user = get_user(self.request)).order_by(*self.get_ordering())
     
     def get(self, request, *args, **kwargs):
         
@@ -281,5 +302,5 @@ class OrdersList(ListView):
             return redirect(reverse('login'))
         except Exception as exception:
             logging.exception(exception)
-            self.template_name = 'InternalError.html'
+            self.template_name = '500.html'
             # TODO
