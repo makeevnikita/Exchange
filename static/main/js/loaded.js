@@ -1,9 +1,5 @@
 var receive_give_currency_list = {};
-var give_token_standart_list = {};
-var receive_token_standart_list = {};
 var exchange_rates_dict = {}
-var commission = {}
-var MEDIA_URL = ''
 jQuery(document).ready(function(){
     receive_give_currency_list = JSON.parse(jQuery('#exchange_ways')[0].innerHTML)
     give_tokens = JSON.parse(jQuery('#give_tokens')[0].innerHTML)

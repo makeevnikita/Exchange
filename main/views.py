@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.http import JsonResponse, Http404
+from django.http import JsonResponse
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
 from django.core.cache import cache
 from django.urls import reverse
@@ -20,11 +20,6 @@ import logging
 
 logging.getLogger('main')
 
-class Cache:
-
-    cache_key = None
-
-
 class ExchangeView(View, ContextMixin):
     
     """Главная страница сайта"""
@@ -38,6 +33,7 @@ class ExchangeView(View, ContextMixin):
 
     async def get_objects(self):
         
+
         self.extra_context['give_coins'] = [
                 coin for coin in await services.get_coins_to_give()
             ]
@@ -54,6 +50,8 @@ class ExchangeView(View, ContextMixin):
             list([coin for coin in await services.get_receive_tokens()]),
             )
         
+        print(await services.get_coins())
+
     async def get_context_data(self, **kwargs):
 
         try:
@@ -219,7 +217,7 @@ class OrderView(DetailView):
 
         status_code = 200
         try:
-            self.object = Order().get_one_order(
+            self.object = await Order().get_one_order(
                 random_string = kwargs['random_string'],)
         except ObjectDoesNotExist as exception:
             logging.exception(exception)
@@ -273,8 +271,8 @@ class OrdersList(ListView):
             'title': 'Заказы',
         } 
     ordering = ['-date_time',]
-
-    def get_queryset(self):
+    
+    async def get_queryset(self):
 
         """
             Находит все заказы клиента, сортируя их по убыванию даты
@@ -285,9 +283,11 @@ class OrdersList(ListView):
         if not get_user(self.request).is_authenticated:
             raise PermissionDenied
         
-        return Order().get_objects(user = get_user(self.request)).order_by(*self.get_ordering())
+        return await Order().get_objects(user = get_user(self.request),
+                                         order_by = self.get_ordering(),
+                                        )
     
-    def get(self, request, *args, **kwargs):
+    async def get(self, request, *args, **kwargs):
         
         """
             Выводит спсиок заказов для зарегистрированного клиента.
@@ -297,7 +297,9 @@ class OrdersList(ListView):
         """
         
         try:
-            return super().get(request, *args, **kwargs)
+            self.object_list = await self.get_queryset()
+            context = self.get_context_data()
+            return self.render_to_response(context)
         except PermissionDenied:
             return redirect(reverse('login'))
         except Exception as exception:

@@ -3,7 +3,7 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 from django.urls import reverse
 from django.core.cache import cache
-from django.core.exceptions import ObjectDoesNotExist
+from asgiref.sync import sync_to_async
 
     
 
@@ -256,20 +256,46 @@ class Order(models.Model):
     def get_absolute_url(self):
         return reverse('order_info', kwargs={'random_string': self.random_string })
     
-    def get_one_order(self, random_string):
+    async def get_one_order(self, random_string):
+
+        """
+            Возвращает один заказ из кэша
+
+            return: Order
+        """
+
         cache_key = 'Order.get_one_order(random_string={0})'.format(self.random_string)
         cache_value = cache.get(cache_key)
         if cache_value is not None:
             return cache_value
-        order = Order.objects.get(random_string=random_string)
+        order = await Order.objects.select_related(
+                                'give',
+                                'receive',
+                                'give_token_standart',
+                                'receive_token_standart',
+                                'address_to',
+                                'status').aget(random_string=random_string)
         cache.set(cache_key, cache_value, 1 * 60 * 60)
         return order
     
-    def get_objects(self, user):
+    async def get_objects(self, user, order_by):
+
+        """
+            Возвращает список заказов
+
+            return QuerySet
+        """
+
         cache_key = 'Orders.get_orders(user={0})'.format(user.username)
         cache_value = cache.get(cache_key)
         if cache_value is not None:
             return cache_value
-        order = Order.objects.filter(user=user)
+        order = Order.objects.select_related(
+                                'give',
+                                'receive',
+                                'give_token_standart',
+                                'receive_token_standart',
+                                'address_to',
+                                'status').filter(user=user).order_by(*order_by)
         cache.set(cache_key, cache_value, 1 * 60 * 60)
         return order

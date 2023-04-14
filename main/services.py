@@ -14,6 +14,11 @@ import logging
 logging.getLogger('main')
 
 @sync_to_async
+def get_coins():
+
+    return ReceiveGiveCurrencies.objects.select_related('give', 'receive')
+
+@sync_to_async
 def get_coins_to_give():
 
     """
