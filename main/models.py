@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.core.cache import cache
 from asgiref.sync import sync_to_async
 
-    
+
 
 class TokenStandart(models.Model):
 
@@ -281,7 +281,7 @@ class Order(models.Model):
     async def get_objects(self, user, order_by):
 
         """
-            Возвращает список заказов
+            Возвращает список заказов из кэша
 
             return QuerySet
         """

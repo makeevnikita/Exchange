@@ -49,8 +49,6 @@ class ExchangeView(View, ContextMixin):
         self.extra_context['receive_tokens'] = json.dumps(
             list([coin for coin in await services.get_receive_tokens()]),
             )
-        
-        print(await services.get_coins())
 
     async def get_context_data(self, **kwargs):
 

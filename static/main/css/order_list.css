@@ -1,0 +1,34 @@
+body {
+    background-color: #f2f4f9;
+    font-family: 'Roboto', cursive;
+}
+/*Содержимое*/
+.content {
+    margin: 30px auto;
+    max-width: 900px;
+    padding: 30px 30px;
+    min-height: 100%;
+    border-radius: 15px;
+}
+/*Блок с суммой и иконкой валюты */
+.check {
+    display: flex;
+    width: 300px;
+    background-color: #f2f4f9;
+    border-radius: 15px;
+}
+.check div {
+    margin: auto 5px;
+    font-size: 18px;
+}
+.check img {
+    width: 60px;
+}
+/*Номер заказа*/
+.number {
+    background-color: black;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 10px;
+    text-align: center;
+}

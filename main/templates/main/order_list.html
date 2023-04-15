@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block header %}
-    <link rel="stylesheet" href="{% static 'main/css/order_info.css' %}" type="text/css">
+    <link rel="stylesheet" href="{% static 'main/css/order_list.css' %}" type="text/css">
 {% endblock %}
 {% block content %}
     <div class="content">
@@ -10,7 +10,7 @@
                 <li>
                     <div class="order-wrap">
                         <div class="head">
-                            <div class="executed">{{ order.status.status }}</div>
+                            <div class="number">Заказ № {{ order.number }}</div>
                         </div>
                         <a href="{{ order.get_absolute_url }}" class="middle">
                             <div>
