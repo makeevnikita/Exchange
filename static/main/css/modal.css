@@ -40,7 +40,7 @@
     justify-content: space-between;
   }
   .modal input {
-    margin: 0px 15px;
+    margin: 10px;
     height: 50px;
     border-radius: 10px;
     background-color: #0a0a0a;

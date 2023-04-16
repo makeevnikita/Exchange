@@ -255,7 +255,7 @@ class Order(models.Model):
     def get_absolute_url(self):
         return reverse('order_info', kwargs={'random_string': self.random_string })
     
-    async def get_one_order(self, random_string):
+    async def get_order_from_cache(self, random_string):
 
         """
             Возвращает один заказ из кэша

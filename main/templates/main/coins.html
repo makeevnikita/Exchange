@@ -162,7 +162,13 @@
             <div class="feedback-tr">
               <div>
                 <p>{{ feedback.date_time }}</p>
-                <p>{{ feedback.user.username }}</p>
+                <p>
+                  {% if feedback.user.username %}
+                    {{ feedback.user.username }}
+                  {% else %}
+                    Аноним
+                  {% endif %}
+                </p>
                 <p>{{ feedback.text }}</p>
               </div>
             </div>
@@ -230,7 +236,7 @@
               {% endfor %}
               <div class="bot">
                 <input type="submit" value="Отправить">
-                <input type="button" id="cancel" value="Отмена" onclick="cancel()">
+                <input type="button" id="cancel" value="Отмена" onclick="close_feedback_modal()">
               </div>
           </form>
         </div>

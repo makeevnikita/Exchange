@@ -101,6 +101,7 @@ class ExchangeView(View, FormMixin, ContextMixin):
             return JsonResponse 
         """
         if request.POST.get('give_sum'):
+            print(get_user(self.request).is_authenticated)
             return await self.create_order()
         elif request.POST.get('text'):
             return await self.create_feedback()
@@ -115,7 +116,7 @@ class ExchangeView(View, FormMixin, ContextMixin):
             receive_token_standart_id=self.request.POST['receive_token_standart_id'],
             receive_name=self.request.POST['receive_name'],
             receive_address=self.request.POST['receive_address'],
-            user=get_user(self.request)
+            user=get_user(self.request) if get_user(self.request).is_authenticated else None
         )
 
         return JsonResponse(
@@ -127,7 +128,7 @@ class ExchangeView(View, FormMixin, ContextMixin):
         if form.is_valid():
             await FeedBack.objects.acreate(
                     text=self.request.POST.get('text'),
-                    user=get_user(self.request)
+                    user=get_user(self.request) if get_user(self.request).is_authenticated else None
                 )
             return super().form_valid(form)
 
@@ -206,10 +207,10 @@ class OrderView(DetailView):
         
         self.object = kwargs['object']
         
+        if get_user(self.request).is_authenticated and self.object.user == None:
+            raise PermissionDenied
+        
         if self.object:
-
-            if get_user(self.request) != self.object.user:
-                raise PermissionDenied
             
             time = self.calculate_the_time(date_time = self.object.date_time)
 
@@ -231,8 +232,9 @@ class OrderView(DetailView):
 
         status_code = 200
         try:
-            self.object = await Order().get_one_order(
-                random_string = kwargs['random_string'],)
+            self.object = await Order().get_order_from_cache(
+                    random_string = kwargs['random_string'],
+                )
         except ObjectDoesNotExist as exception:
             logging.exception(exception)
             self.template_name = '404.html'
