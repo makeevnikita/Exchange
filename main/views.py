@@ -2,13 +2,15 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
 from django.core.cache import cache
-from django.urls import reverse
+from django.contrib.auth import get_user
+from django.urls import reverse, reverse_lazy
 from django.views import View
 from django.views.generic import ListView, DetailView
 from django.views.generic.base import ContextMixin
+from django.views.generic.edit import FormMixin
 from datetime import datetime
-from django.contrib.auth import get_user
-from .models import Order
+from .models import Order, FeedBack
+from .forms import FeedBackForm
 from . import exchangenetwork as network
 from . import services
 from cryptosite.settings import MEDIA_URL, NAV_BAR, IMAGES_URL
@@ -20,18 +22,20 @@ import logging
 
 logging.getLogger('main')
 
-class ExchangeView(View, ContextMixin):
+class ExchangeView(View, FormMixin, ContextMixin):
     
     """Главная страница сайта"""
 
+    success_url = reverse_lazy('main')
     template_name = 'main/coins.html'
     extra_context = {
         'nav_bar': NAV_BAR,
         'MEDIA_URL': MEDIA_URL,
         'title': 'Главная',
     }
+    form_class = FeedBackForm
 
-    async def get_objects(self):
+    async def get_objects(self, *args, **kwargs):
         
 
         self.extra_context['give_coins'] = [
@@ -49,8 +53,9 @@ class ExchangeView(View, ContextMixin):
         self.extra_context['receive_tokens'] = json.dumps(
             list([coin for coin in await services.get_receive_tokens()]),
             )
+        self.extra_context['feedbacks'] = FeedBack.get_from_cache()
 
-    async def get_context_data(self, **kwargs):
+    async def get_context_data(self, *args, **kwargs):
 
         try:
             await self.get_objects()
@@ -95,25 +100,36 @@ class ExchangeView(View, ContextMixin):
 
             return JsonResponse 
         """
-        user = None
-        if get_user(request).is_authenticated:
-            user = get_user(request)
+        if request.POST.get('give_sum'):
+            return await self.create_order()
+        elif request.POST.get('text'):
+            return await self.create_feedback()
 
+    async def create_order(self, *args, **kwargs):
         random_string = await services.create_new_order(
-            give_sum=request.POST['give_sum'],
-            receive_sum=request.POST['receive_sum'],
-            give_payment_method_id=request.POST['give_payment_method_id'],
-            receive_payment_method_id=request.POST['receive_payment_method_id'],
-            give_token_standart_id=request.POST['give_token_standart_id'],
-            receive_token_standart_id=request.POST['receive_token_standart_id'],
-            receive_name=request.POST['receive_name'],
-            receive_address=request.POST['receive_address'],
-            user=user
+            give_sum=self.request.POST['give_sum'],
+            receive_sum=self.request.POST['receive_sum'],
+            give_payment_method_id=self.request.POST['give_payment_method_id'],
+            receive_payment_method_id=self.request.POST['receive_payment_method_id'],
+            give_token_standart_id=self.request.POST['give_token_standart_id'],
+            receive_token_standart_id=self.request.POST['receive_token_standart_id'],
+            receive_name=self.request.POST['receive_name'],
+            receive_address=self.request.POST['receive_address'],
+            user=get_user(self.request)
         )
 
         return JsonResponse(
             data={'link': 'order/{0}'.format(random_string)},
         )
+    
+    async def create_feedback(self, *args, **kwargs):
+        form = self.get_form()
+        if form.is_valid():
+            await FeedBack.objects.acreate(
+                    text=self.request.POST.get('text'),
+                    user=get_user(self.request)
+                )
+            return super().form_valid(form)
 
 def rules(request):
 
@@ -259,7 +275,7 @@ class OrderView(DetailView):
             except Exception as exception:
                 logging.exception(exception)
 
-class OrdersList(ListView):
+class OrdersList(ListView, FormMixin):
 
     template_name = 'main/order_list.html'
     context_object_name = 'orders'
@@ -269,7 +285,9 @@ class OrdersList(ListView):
             'title': 'Заказы',
         } 
     ordering = ['-date_time',]
-    
+
+    form_class = FeedBackForm
+
     async def get_queryset(self):
 
         """
@@ -295,6 +313,8 @@ class OrdersList(ListView):
         """
         
         try:
+            form_class = self.get_form_class()
+            self.form = self.get_form(form_class)
             self.object_list = await self.get_queryset()
             context = self.get_context_data()
             return self.render_to_response(context)

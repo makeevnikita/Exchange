@@ -3,7 +3,6 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 from django.urls import reverse
 from django.core.cache import cache
-from asgiref.sync import sync_to_async
 
 
 
@@ -299,3 +298,28 @@ class Order(models.Model):
                                 'status').filter(user=user).order_by(*order_by)
         cache.set(cache_key, cache_value, 1 * 60 * 60)
         return order
+
+class FeedBack(models.Model):
+
+    text = models.TextField(
+        null=False,
+        default='Без отзыва',
+        max_length=350,
+    )
+    user = models.ForeignKey(
+        User,
+        null=True,
+        on_delete=models.SET_NULL
+    )
+    date_time = models.DateTimeField(
+        null = False,
+        default = timezone.now,
+    )
+
+    @classmethod
+    def get_from_cache(self):
+        value = cache.get('feedback')
+        if value is None:
+            value = FeedBack.objects.select_related('user').order_by('-date_time')[:20]
+            cache.set('feedback', value, 1 * 60 * 60)
+        return value

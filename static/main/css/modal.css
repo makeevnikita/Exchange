@@ -1,0 +1,118 @@
+/* Модальное окно */
+.modal {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1050;
+    opacity: 0;
+    -webkit-transition: opacity 200ms ease-in; 
+    -moz-transition: opacity 200ms ease-in;
+    transition: opacity 200ms ease-in;
+    pointer-events: none;
+    margin: 0;
+    padding: 0;
+  }
+  /* ширина модального окна и его отступы от экрана */
+  .modal-dialog {
+    position: relative;
+    width: auto;
+    margin: 10px;
+    max-width: 570px;
+    margin: 30px auto;
+  }
+  /* свойства для блока, содержащего контент модального окна */ 
+  .modal-content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid rgba(0,0,0,.2);
+    border-radius: .3rem;
+    outline: 0;
+    padding: 5px 50px ;
+  }
+  .check-claim-content {
+    display: flex;
+    justify-content: space-between;
+  }
+  .modal input {
+    margin: 0px 15px;
+    height: 50px;
+    border-radius: 10px;
+    background-color: #0a0a0a;
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: bolder;
+    border: #0a0a0a 1px solid;
+    cursor: pointer;
+  }
+  .payment-sum div {
+    font-weight: 600;
+  }
+  @media (max-width: 1200px) {
+    .check-claim-content {
+      display: block;
+    }
+    .modal-content {
+      position: relative;
+      display: block;
+      flex-direction: column;
+      background-color: #fff;
+      background-clip: padding-box;
+      border: 1px solid rgba(0,0,0,.2);
+      border-radius: .3rem;
+      outline: 0;
+      padding: 5px 50px ;
+    }
+    .modal input {
+    font-size: 14px;
+  }
+  }
+  .modal-header {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+    -ms-flex-align: center;
+    align-items: center;
+    -webkit-box-pack: justify;
+    -webkit-justify-content: space-between;
+    -ms-flex-pack: justify;
+    justify-content: center;
+    padding: 15px;
+    border-bottom: 1px solid #eceeef;
+  }
+  .modal-title {
+    margin-top: 0;
+    margin-bottom: 0;
+    line-height: 1.5;
+    font-size: 1.25rem;
+    font-weight: 500;
+  }
+  .modal-body {
+  position: relative;
+    -webkit-box-flex: 1;
+    -webkit-flex: 1 1 auto;
+    -ms-flex: 1 1 auto;
+    flex: 1 1 auto;
+    padding: 15px;
+    overflow: auto;
+    word-break: break-all;
+  }
+  .check-claim-reqs, b{
+    font-size: 12px;
+  }
+  .bot {
+    display: flex;
+    justify-content: center;
+  }
+  .bot input:hover {
+    color: #0a0a0a;
+    background-color: #ffffff;
+  }

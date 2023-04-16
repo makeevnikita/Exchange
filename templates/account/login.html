@@ -8,14 +8,14 @@
 		<div class="center">
 			<form method="post" class="card" novalidate>
 				{% csrf_token %}
-			  <h2 class="text-center" style="color: #292b2c;">Вход в личный кабинет</h2>
-			  {% for field in form %}
-					  {{ field.label_tag }} 
-					  {{ field }}
-					  {% if field.errors %}
-						  <small>{{ field.errors|striptags }}</small> 
-					  {% endif %}
-			  {% endfor %}
+				<h2 class="text-center" style="color: #292b2c;">Вход в личный кабинет</h2>
+				{% for field in form %}
+					{{ field.label_tag }} 
+						{{ field }}
+						{% if field.errors %}
+							<small>{{ field.errors|striptags }}</small> 
+						{% endif %}
+			  	{% endfor %}
 			  
 			  <input type="submit" value="Login" class="btn btn-primary full-width">
 			  <hr>

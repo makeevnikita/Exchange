@@ -135,8 +135,8 @@ function show_model() {
     }
     if (valid) {
         jQuery('.check-claim-side.to .payment-sum .check-claim-ps')[0].innerHTML = receive_payment_method_name
-        jQuery('.modal').css('opacity', 1)
-        jQuery('.modal').css('pointer-events', 'all')
+        jQuery('#openModal').css('opacity', 1)
+        jQuery('#openModal').css('pointer-events', 'all')
     }
 }
 

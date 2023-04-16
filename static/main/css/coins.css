@@ -2,6 +2,64 @@
 * {
 	margin: 0px;
 }
+/*Отзывы*/
+.feedback-content {
+  overflow-x: auto;
+  box-shadow: 0px 1px 5px 0px grey;
+  border-radius: 15px;
+  display: flex;
+  margin: auto;
+  max-width: 80%;
+}
+.feedback-table {
+  display: flex;
+  margin: auto;
+  max-width: 80%;
+}
+.feedback-tr {
+  border-radius: 15px;
+  color: black;
+  border: 1px solid #adb1b8;
+  margin: 0px 10px;
+  box-sizing: border-box;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 10px;
+}
+.feedback-tr p:nth-child(3) {
+  width: 300px;
+  font-size: 12px;
+  -webkit-line-clamp: 8; /* Число отображаемых строк */
+  display: -webkit-box; /* Включаем флексбоксы */
+  -webkit-box-orient: vertical; /* Вертикальная ориентация */
+  overflow: hidden; /* Обрезаем всё за пределами блока */
+  word-break: break-all;
+}
+.feedback-tr p:first-child {
+  color: #666666;
+  text-align: center;
+  font-size: 12px;
+}
+
+.start-exchange, .btn-feedback {
+  border-radius: 15px;
+  font-size: 24px;
+  background-color: #0a0a0a;
+  color: #ffffff;
+  border: #242629 1px solid;
+  height: 50px;
+  width: 100%;
+  cursor: pointer;
+}
+.btn-feedback {
+  margin: 20px 0px;
+  width: auto;
+  font-size: 16px;
+}
+.start-exchange:hover, .btn-feedback:hover {
+  background-color: #ffffff;
+  color: #0a0a0a;
+}
 .coins {
     display: flex;
     flex-wrap: wrap;
@@ -32,9 +90,6 @@
   -ms-user-select: none; /* Internet Explorer/Edge */
   user-select: none;
 	cursor: pointer;
-}
-table tbody tr{
-    display: flex;
 }
 .currency-td img, .table-header {
     height: 50px;

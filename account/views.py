@@ -41,3 +41,4 @@ class LoginUserView(LoginView):
     def form_invalid(self, form):
         messages.error(self.request,'Неверный логин или пароль')
         return self.render_to_response(self.get_context_data(form=form))
+    
