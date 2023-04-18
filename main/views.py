@@ -37,7 +37,15 @@ class ExchangeView(View, FormMixin, ContextMixin):
 
     async def get_objects(self, *args, **kwargs):
         
-
+        """
+            Отправляет sql-запросы
+            Запросы вытягивают: валюту, которую может отдать клиент
+                                валюту, которую может получить клиент
+                                сети валют, в которых мы принимаем
+                                сети валют, в которых мы отдаём
+                                пути обмена (модель ManyToMany)
+                                отзывы
+        """
         self.extra_context['give_coins'] = [
                 coin for coin in await services.get_coins_to_give()
             ]
@@ -53,10 +61,10 @@ class ExchangeView(View, FormMixin, ContextMixin):
         self.extra_context['receive_tokens'] = json.dumps(
             list([coin for coin in await services.get_receive_tokens()]),
             )
-        self.extra_context['feedbacks'] = FeedBack.get_from_cache()
+        self.extra_context['feedbacks'] = FeedBack().get_objects_from_cache()
 
     async def get_context_data(self, *args, **kwargs):
-
+        
         try:
             await self.get_objects()
         except Exception as exception:
@@ -71,17 +79,15 @@ class ExchangeView(View, FormMixin, ContextMixin):
         """
             Главная страница сайта.
             
-            Здесь выполняются асинхронные запросы в базу данных
-            Запросы вытягивают: валюту, которую может отдать клиент
-                                валюту, которую может получить клиент
-                                сети валют, в которых мы принимаем
-                                сети валют, в которых мы отдаём
-                                пути обмена (модель ManyToMany)
-
             return: HttpResponse
         """
-
-        context = await self.get_context_data()
+        try:
+            context = await self.get_context_data()
+        except Exception as exception:
+            logging.exception(exception)
+            
+            self.template_name = '500.html'
+        
         return render(
                 request = self.request,
                 template_name = self.template_name,
@@ -90,6 +96,18 @@ class ExchangeView(View, FormMixin, ContextMixin):
         
     async def post(self, request, *args, **kwargs):
         
+        """
+            Принимает запросы:
+                ajax-запрос на создание заказа
+                запрос из формы на создание отзыва
+        """
+        if request.POST.get('give_sum'):
+            return await self.create_order()
+        elif request.POST.get('text'):
+            return await self.create_feedback()
+
+    async def create_order(self, *args, **kwargs):
+
         """
             Создаёт новый заказ.
 
@@ -100,13 +118,7 @@ class ExchangeView(View, FormMixin, ContextMixin):
 
             return JsonResponse 
         """
-        if request.POST.get('give_sum'):
-            print(get_user(self.request).is_authenticated)
-            return await self.create_order()
-        elif request.POST.get('text'):
-            return await self.create_feedback()
 
-    async def create_order(self, *args, **kwargs):
         random_string = await services.create_new_order(
             give_sum=self.request.POST['give_sum'],
             receive_sum=self.request.POST['receive_sum'],
@@ -124,6 +136,13 @@ class ExchangeView(View, FormMixin, ContextMixin):
         )
     
     async def create_feedback(self, *args, **kwargs):
+
+        """
+            Создаёт отзыв
+
+            return: HttpResponse
+        """
+
         form = self.get_form()
         if form.is_valid():
             await FeedBack.objects.acreate(
@@ -205,19 +224,22 @@ class OrderView(DetailView):
     
     def get_context_data(self, **kwargs):
         
-        self.object = kwargs['object']
-        
-        if get_user(self.request).is_authenticated and self.object.user == None:
-            raise PermissionDenied
-        
         if self.object:
-            
-            time = self.calculate_the_time(date_time = self.object.date_time)
+            """
+                Если создатель заказа это есть клиент
+                или
+                Если создатель заказа равен None и клиент анонимен
+            """
+            if (self.object.user == get_user(self.request)) or \
+               (self.object.user == None and get_user(self.request).is_anonymous):
+                time = self.calculate_the_time(date_time = self.object.date_time)
 
-            self.extra_context['title'] = 'Заказ №{0}'.format(self.object.number)
+                self.extra_context['title'] = 'Заказ №{0}'.format(self.object.number)
 
-            self.extra_context['minutes'] = time['minutes']
-            self.extra_context['seconds'] = time['seconds']
+                self.extra_context['minutes'] = time['minutes']
+                self.extra_context['seconds'] = time['seconds']
+            else:
+                raise PermissionDenied
 
         return super().get_context_data(**kwargs)
     
@@ -232,11 +254,12 @@ class OrderView(DetailView):
 
         status_code = 200
         try:
-            self.object = await Order().get_order_from_cache(
+            self.object = await Order().get_from_cache(
                     random_string = kwargs['random_string'],
                 )
         except ObjectDoesNotExist as exception:
             logging.exception(exception)
+            self.object = None
             self.template_name = '404.html'
             status_code = 404
         except PermissionDenied as exception:
@@ -277,7 +300,7 @@ class OrderView(DetailView):
             except Exception as exception:
                 logging.exception(exception)
 
-class OrdersList(ListView, FormMixin):
+class OrdersList(ListView):
 
     template_name = 'main/order_list.html'
     context_object_name = 'orders'
@@ -287,8 +310,6 @@ class OrdersList(ListView, FormMixin):
             'title': 'Заказы',
         } 
     ordering = ['-date_time',]
-
-    form_class = FeedBackForm
 
     async def get_queryset(self):
 
@@ -301,22 +322,20 @@ class OrdersList(ListView, FormMixin):
         if not get_user(self.request).is_authenticated:
             raise PermissionDenied
         
-        return await Order().get_objects(user = get_user(self.request),
-                                         order_by = self.get_ordering(),
+        return await Order().get_objects_from_cache(user = get_user(self.request),
+                                            order_by = self.get_ordering(),
                                         )
     
     async def get(self, request, *args, **kwargs):
         
         """
-            Выводит спсиок заказов для зарегистрированного клиента.
+            Выводит список заказов для зарегистрированного клиента.
             Если клиент анонимный, то переводит его на страницу login.
             
             return: HttpResponse
         """
         
         try:
-            form_class = self.get_form_class()
-            self.form = self.get_form(form_class)
             self.object_list = await self.get_queryset()
             context = self.get_context_data()
             return self.render_to_response(context)

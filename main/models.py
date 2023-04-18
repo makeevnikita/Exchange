@@ -255,7 +255,7 @@ class Order(models.Model):
     def get_absolute_url(self):
         return reverse('order_info', kwargs={'random_string': self.random_string })
     
-    async def get_order_from_cache(self, random_string):
+    async def get_from_cache(self, random_string):
 
         """
             Возвращает один заказ из кэша
@@ -264,40 +264,36 @@ class Order(models.Model):
         """
 
         cache_key = 'Order.get_one_order(random_string={0})'.format(self.random_string)
-        cache_value = cache.get(cache_key)
-        if cache_value is not None:
-            return cache_value
-        order = await Order.objects.select_related(
+        value = cache.get(cache_key)
+        if value == None:
+            value = await Order.objects.select_related(
                                 'give',
                                 'receive',
                                 'give_token_standart',
                                 'receive_token_standart',
                                 'address_to',
                                 'status').aget(random_string=random_string)
-        cache.set(cache_key, cache_value, 1 * 60 * 60)
-        return order
+        return value
     
-    async def get_objects(self, user, order_by):
+    async def get_objects_from_cache(self, user, order_by):
 
         """
-            Возвращает список заказов из кэша
+            Возвращает QuerySet заказов из кэша
 
             return QuerySet
         """
 
         cache_key = 'Orders.get_orders(user={0})'.format(user.username)
-        cache_value = cache.get(cache_key)
-        if cache_value is not None:
-            return cache_value
-        order = Order.objects.select_related(
+        value = cache.get(cache_key)
+        if value == None:
+            value = Order.objects.select_related(
                                 'give',
                                 'receive',
                                 'give_token_standart',
                                 'receive_token_standart',
                                 'address_to',
                                 'status').filter(user=user).order_by(*order_by)
-        cache.set(cache_key, cache_value, 1 * 60 * 60)
-        return order
+        return value
 
 class FeedBack(models.Model):
 
@@ -316,10 +312,17 @@ class FeedBack(models.Model):
         default = timezone.now,
     )
 
-    @classmethod
-    def get_from_cache(self):
-        value = cache.get('feedback')
-        if value is None:
+    def get_objects_from_cache(self):
+
+        """
+            Возвращает QuerySet отзывов из кэша
+
+            return QuerySet
+        """
+
+        cache_key = 'feedback'
+        value = cache.get(cache_key)
+        if value == None:
             value = FeedBack.objects.select_related('user').order_by('-date_time')[:20]
-            cache.set('feedback', value, 1 * 60 * 60)
+            cache.set(cache_key, value, 1 * 60 * 60)
         return value
