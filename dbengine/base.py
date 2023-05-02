@@ -9,7 +9,7 @@ logging.getLogger('main')
 
 class CursorWrapper(DjangoCursorWrapper):
     def execute(self, sql, params=None):
-        # logging.info(sql)
+        logging.info(sql)
         return super().execute(sql, params)
 
 class DatabaseWrapper(DjangoDatabaseWrapper):

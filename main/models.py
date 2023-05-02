@@ -3,6 +3,9 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 from django.urls import reverse
 from django.core.cache import cache
+from asgiref.sync import sync_to_async
+from django.contrib.auth.signals import user_logged_in, user_logged_out
+from django.dispatch import receiver
 
 
 
@@ -11,6 +14,10 @@ class TokenStandart(models.Model):
     """
         Сеть криптовалюты
     """
+
+    class Meta:
+        verbose_name = 'Сеть криптовалюты'
+        verbose_name_plural = 'Сети криптовалют'
 
     token_standart = models.CharField(max_length=10)
     commission = models.IntegerField(null=False, default=-1)
@@ -24,6 +31,10 @@ class CategoryPaymentMethod(models.Model):
         Виды платёжных систем (банк, крипто, онлайн-кошелёк)
     """
 
+    class Meta:
+        verbose_name = 'Вид платёжной системы'
+        verbose_name_plural = 'Виды платёжных систем'
+
     category_payment_method_name = models.CharField(
         max_length=255,
         null=False
@@ -32,22 +43,26 @@ class CategoryPaymentMethod(models.Model):
     def __str__(self) -> str:
         return self.category_payment_method_name
 
-class GiveCurrency(models.Model):
+class AbstractCurrency(models.Model):
 
     """
-        Валюты, которые отдаёт клиент
-        currency_name - название платёжно системы   
+        Абстрактный класс валют.
+
+        currency_name - название платёжной системы   
         currency_name_short - название валюты кратко 
         image - логотип платёжной системы
         category_payment_method - категория платёжной системы (банк, крипто, онлайн-кошелёк)
         token_standart - сеть криптовалюты
     """
 
+    class Meta:
+        abstract = True
+
     currency_name = models.CharField(
         max_length = 150,
     )
     currency_name_short = models.CharField(
-        max_length = 10,
+        max_length=10,
     )
     image = models.FileField(
         upload_to = 'images/coins/',
@@ -55,8 +70,8 @@ class GiveCurrency(models.Model):
     )
     category_payment_method = models.ForeignKey(
         CategoryPaymentMethod,
-        on_delete = models.SET_NULL,
-        null = True,
+        on_delete=models.SET_NULL,
+        null=True,
     )
     token_standart = models.ManyToManyField(
         TokenStandart,
@@ -65,27 +80,25 @@ class GiveCurrency(models.Model):
     def __str__(self) -> str:
         return f'{self.currency_name}'
 
-class ReceiveCurrency(models.Model):
+class GiveCurrency(AbstractCurrency):
 
     """
-        Валюты, которые отдаём мы.
-
-        currency_name - название платёжно системы   
-        currency_name_short - название валюты кратко 
-        image - логотип платёжной системы
-        category_payment_method - категория платёжной системы (банк, крипто, онлайн-кошелёк)
-        token_standart - сеть криптовалюты
-        address - адрес, на который клиент переводит валюту
+        Валюты, которые отдаёт клиент
     """
 
-    currency_name = models.CharField(max_length=150)
-    currency_name_short = models.CharField(max_length=10)
-    image = models.FileField(upload_to='images/coins/', null=False)
-    category_payment_method = models.ForeignKey(CategoryPaymentMethod, on_delete=models.SET_NULL, null=True)
-    token_standart = models.ManyToManyField(TokenStandart)
+    class Meta:
+        verbose_name = 'Валюта, которую отдаёт клиент'
+        verbose_name_plural = 'Валюты, которые отдаёт клиент'
+    
+class ReceiveCurrency(AbstractCurrency):
 
-    def __str__(self) -> str:
-        return f'{self.currency_name}'
+    """
+        Валюты, которые отдаём мы
+    """
+
+    class Meta:
+        verbose_name = 'Валюта, которую получает клиент'
+        verbose_name_plural = 'Валюты, которые получает клиент'
     
 class AddressTo(models.Model):
     
@@ -97,6 +110,10 @@ class AddressTo(models.Model):
         token_standart - сеть валюты
     """
     
+    class Meta:
+        verbose_name = 'Адрес для перевода'
+        verbose_name_plural = 'Адреса для перевода'
+
     address = models.CharField(
         max_length = 255,
         null = False,
@@ -115,11 +132,13 @@ class AddressTo(models.Model):
 
     def __str__(self) -> str:
         return f'{self.address}'
-
+        
 class ReceiveGiveCurrencies(models.Model):
     
     class Meta:
         unique_together = (('receive', 'give'),)
+        verbose_name = 'Путь обмена'
+        verbose_name_plural = 'Пути обмена'
 
     receive = models.ForeignKey(
         ReceiveCurrency,
@@ -138,12 +157,76 @@ class ReceiveGiveCurrencies(models.Model):
 
     def __str__(self) -> str:
         return f'{self.receive.currency_name} {self.give.currency_name}'
+    
     def get_receive_currency_name(self):
         return self.receive.currency_name
+    
     def get_give_currency_name(self):
         return self.give.currency_name
+    
+    @sync_to_async
+    def get_coins_from_cache(self):
 
+        cache_key = 'coins_for_exchange'
+        value = cache.get(cache_key)
+        if value == None:
+            coins_to_give = ReceiveGiveCurrencies.objects.values(
+                                    'give_id',
+                                    'give__currency_name',
+                                    'give__currency_name_short',
+                                    'give__image',
+                                    'give__category_payment_method__id',).distinct()
+            coins_to_receive = ReceiveGiveCurrencies.objects.values(
+                                    'receive_id',
+                                    'receive__currency_name',
+                                    'receive__currency_name_short',
+                                    'receive__image',
+                                    'receive__category_payment_method__id',).distinct()
+            value = (
+                [coin for coin in coins_to_give],
+                [coin for coin in coins_to_receive],
+            )
+            cache.set(cache_key, value, 1 * 60 * 60)
+
+        return value
+    
+    @sync_to_async
+    def get_exchange_ways_from_cache(self):
+
+        cache_key = 'exchange_ways'
+        value = cache.get(cache_key)
+        if value == None:
+            value = ReceiveGiveCurrencies.objects.values(
+                                                        'give_id',
+                                                        'receive_id',)
+            cache.set(cache_key, value, 1 * 30 * 60)
+        return value
+    
+    @sync_to_async
+    def get_tokens_from_cache(self):
+
+        cache_key = 'tokens'
+        value = cache.get(cache_key)
+        if value == None:
+            give_tokens = ReceiveGiveCurrencies.objects.values(
+                                               'give_id',
+                                               'give__token_standart__id',
+                                               'give__token_standart__token_standart')\
+                                                .exclude(give__token_standart__id = 1).distinct()
+            receive_tokens = ReceiveGiveCurrencies.objects.values(
+                                                'receive_id',
+                                                'receive__token_standart__id',
+                                                'receive__token_standart__token_standart')\
+                                                .exclude(receive__token_standart__id = 1).distinct()
+            value = (give_tokens, receive_tokens,)
+            cache.set(cache_key, value, 1 * 30 * 60)
+        return value
+    
 class OrderStatus(models.Model):
+
+    class Meta:
+        verbose_name = 'Статус заказы'
+        verbose_name_plural = 'Статусы заказов'
 
     status = models.CharField(
         max_length = 255,
@@ -176,6 +259,13 @@ class Order(models.Model):
         status - статус заказа
     """
     
+    class Meta:
+        verbose_name = 'Заказ'
+        verbose_name_plural = 'Заказы'
+        indexes = [
+            models.Index(fields=['random_string',]),
+        ]
+        
     number = models.IntegerField(
         null = False,
         default = 0,
@@ -272,12 +362,14 @@ class Order(models.Model):
                                 'give_token_standart',
                                 'receive_token_standart',
                                 'address_to',
-                                'status').aget(random_string=random_string)
+                                'status',
+                                'user').aget(random_string=random_string)
+            cache.set(cache_key, value, 1 * 60 * 60)
         return value
     
     async def get_objects_from_cache(self, user, order_by):
 
-        """
+        """ TODO убрать
             Возвращает QuerySet заказов из кэша
 
             return QuerySet
@@ -296,7 +388,18 @@ class Order(models.Model):
         return value
 
 class FeedBack(models.Model):
+    """
+        Отзыв клиента
 
+        text - текст отзыва
+        user - клиент
+        date_time - дата и время создания отзыва
+    """
+
+    class Meta:
+        verbose_name = 'Отзыв'
+        verbose_name_plural = 'Отзывы'
+        
     text = models.TextField(
         null=False,
         default='Без отзыва',

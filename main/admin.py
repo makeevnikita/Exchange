@@ -19,8 +19,6 @@ class CurrencyForm(ModelForm):
 class ReceiveCurrencyAdmin(admin.ModelAdmin):
     form = CurrencyForm
     list_display = ('currency_name', 'currency_name_short')
-    class Media:
-        js = ('admin/js/category_payment_method_select.js',)
     
 @admin.register(GiveCurrency)
 class GiveCurrencyAdmin(ReceiveCurrencyAdmin):

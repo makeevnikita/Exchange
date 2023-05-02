@@ -9,10 +9,11 @@ from django.views.generic import ListView, DetailView
 from django.views.generic.base import ContextMixin
 from django.views.generic.edit import FormMixin
 from datetime import datetime
-from .models import Order, FeedBack
+from .models import Order, FeedBack, ReceiveCurrency, ReceiveGiveCurrencies
 from .forms import FeedBackForm
 from . import exchangenetwork as network
 from . import services
+from .exchangedata import ExchangeData
 from cryptosite.settings import MEDIA_URL, NAV_BAR, IMAGES_URL
 
 import json
@@ -25,7 +26,7 @@ logging.getLogger('main')
 class ExchangeView(View, FormMixin, ContextMixin):
     
     """Главная страница сайта"""
-
+    
     success_url = reverse_lazy('main')
     template_name = 'main/coins.html'
     extra_context = {
@@ -34,7 +35,7 @@ class ExchangeView(View, FormMixin, ContextMixin):
         'title': 'Главная',
     }
     form_class = FeedBackForm
-
+    
     async def get_objects(self, *args, **kwargs):
         
         """
@@ -46,22 +47,14 @@ class ExchangeView(View, FormMixin, ContextMixin):
                                 пути обмена (модель ManyToMany)
                                 отзывы
         """
-        self.extra_context['give_coins'] = [
-                coin for coin in await services.get_coins_to_give()
-            ]
-        self.extra_context['receive_coins'] = [
-                    coin for coin in await services.get_coins_to_receive()
-            ]
-        self.extra_context['exchange_ways'] = json.dumps(
-            list([coin for coin in await services.get_exchange_ways()]),
-            )
-        self.extra_context['give_tokens'] = json.dumps(
-            list([coin for coin in await services.get_give_tokens()]),
-            )
-        self.extra_context['receive_tokens'] = json.dumps(
-            list([coin for coin in await services.get_receive_tokens()]),
-            )
-        self.extra_context['feedbacks'] = FeedBack().get_objects_from_cache()
+
+        exchange_data = ExchangeData()
+        self.extra_context['give_coins'] = exchange_data.get_data('give_coins')
+        self.extra_context['receive_coins'] = exchange_data.get_data('receive_coins')
+        self.extra_context['exchange_ways'] = exchange_data.get_data('exchange_ways')
+        self.extra_context['give_tokens'] = exchange_data.get_data('give_tokens')
+        self.extra_context['receive_tokens'] = exchange_data.get_data('receive_tokens')
+        self.extra_context['feedbacks'] = exchange_data.get_data('feedbacks')
 
     async def get_context_data(self, *args, **kwargs):
         
@@ -81,6 +74,7 @@ class ExchangeView(View, FormMixin, ContextMixin):
             
             return: HttpResponse
         """
+        
         try:
             context = await self.get_context_data()
         except Exception as exception:

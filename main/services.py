@@ -14,89 +14,6 @@ import logging
 logging.getLogger('main')
 
 @sync_to_async
-def get_coins_to_give():
-
-    """
-        Получить монеты, которые может отдать клиент
-    """
-    
-    give_coins = cache.get('give_coins')
-    if not give_coins:
-        try:
-            give_coins = ReceiveGiveCurrencies.objects.values(
-                                    'give_id',
-                                    'give__currency_name',
-                                    'give__currency_name_short',
-                                    'give__image',
-                                    'give__category_payment_method__id').distinct()
-            cache.set('give_coins', give_coins, 1800)
-        except Exception as exception:
-            raise GetCoinsToGiveException from exception
-        
-    return give_coins
-
-@sync_to_async
-def get_coins_to_receive():
-
-    """
-        Получить валюту, которые может получить клиент.
-        Сначала пытаемся вынуть из кэша. Если не получается, то из БД.
-
-        receive_coins - валюта, которую может получить клиент.
-
-        return: receive_coins
-    """
-
-    receive_coins = cache.get('receive_coins')
-    
-    if not receive_coins:
-        try:
-            receive_coins = ReceiveGiveCurrencies.objects.values(
-                                                'receive_id',
-                                                'receive__currency_name',
-                                                'receive__currency_name_short',
-                                                'receive__image',
-                                                'receive__category_payment_method__id').distinct()
-            cache.set('receive_coins', receive_coins, 1800)
-        except Exception as exception:
-            raise GetCoinsToReceiveException from exception
-        
-    return receive_coins
-
-@sync_to_async
-def get_exchange_ways():
-    """
-        Получить пути обмена
-    """
-    exchange_ways = cache.get('exchange_ways')
-    if not exchange_ways:
-        try:
-            exchange_ways = ReceiveGiveCurrencies.objects.values(
-                                        'give_id',
-                                        'receive_id')
-            cache.set('exchange_ways', exchange_ways, 1800)
-        except Exception as exception:
-            raise GetExchangeWaysException from exception
-    return exchange_ways
-
-@sync_to_async
-def get_give_tokens():
-
-    give_tokens = cache.get('give_tokens')
-
-    if not give_tokens:
-        try:
-            give_tokens = ReceiveGiveCurrencies.objects.values('give_id',
-                                               'give__token_standart__id',
-                                               'give__token_standart__token_standart')\
-                                                .exclude(give__token_standart__id = 1).distinct()
-            cache.set('give_tokens', give_tokens, 1800)
-        except Exception as exception:
-            raise GetGiveTokensException from exception
-        
-    return give_tokens
-
-@sync_to_async
 def get_receive_tokens():
 
     receive_tokens = cache.get('receive_tokens')
@@ -117,7 +34,7 @@ def get_receive_tokens():
 def get_short_names_of_coins() -> list:
 
     """
-        Вынимает короткие имена валют в формате
+        Вынимает короткие имена валют в формате:
         <QuerySet [
                     {'give__currency_name_short': str,
                     'receive__currency_name_short': str}]>.
