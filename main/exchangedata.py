@@ -1,4 +1,4 @@
-from .models import Order, FeedBack, ReceiveCurrency, ReceiveGiveCurrencies
+from .models import FeedBack, ReceiveGiveCurrencies
 from django.core.cache import cache
 
 import json
@@ -7,6 +7,16 @@ import json
 
 class ExchangeData:
 
+    """
+    Отправляет SQL-запросы
+
+    Запросы вытягивают: валюту, которую может отдать клиент
+                        валюту, которую может получить клиент
+                        сети валют, в которых мы принимаем
+                        сети валют, в которых мы отдаём
+                        пути обмена (модель ManyToMany)
+                        отзывы
+    """
     def init_data(self):
 
         data = {}
@@ -30,13 +40,12 @@ class ExchangeData:
         exchange_ways = ReceiveGiveCurrencies.objects.values(
                                                             'give_id',
                                                             'receive_id',)
-        
         data['exchange_ways'] = json.dumps(list(exchange_ways))
         
         give_tokens = ReceiveGiveCurrencies.objects.values(
-                                                   'give_id',
-                                                   'give__token_standart__id',
-                                                   'give__token_standart__token_standart')\
+                                                    'give_id',
+                                                    'give__token_standart__id',
+                                                    'give__token_standart__token_standart')\
                                                     .exclude(give__token_standart__id = 1).distinct()
         data['give_tokens'] = json.dumps(list(give_tokens))
 

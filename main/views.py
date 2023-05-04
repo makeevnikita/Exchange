@@ -9,7 +9,7 @@ from django.views.generic import ListView, DetailView
 from django.views.generic.base import ContextMixin
 from django.views.generic.edit import FormMixin
 from datetime import datetime
-from .models import Order, FeedBack, ReceiveCurrency, ReceiveGiveCurrencies
+from .models import Order, FeedBack
 from .forms import FeedBackForm
 from . import exchangenetwork as network
 from . import services
@@ -39,13 +39,7 @@ class ExchangeView(View, FormMixin, ContextMixin):
     async def get_objects(self, *args, **kwargs):
         
         """
-            Отправляет sql-запросы
-            Запросы вытягивают: валюту, которую может отдать клиент
-                                валюту, которую может получить клиент
-                                сети валют, в которых мы принимаем
-                                сети валют, в которых мы отдаём
-                                пути обмена (модель ManyToMany)
-                                отзывы
+        Здесь происходит инициализация данных
         """
 
         exchange_data = ExchangeData()
@@ -95,8 +89,10 @@ class ExchangeView(View, FormMixin, ContextMixin):
                 ajax-запрос на создание заказа
                 запрос из формы на создание отзыва
         """
+        # ajax-запрос
         if request.POST.get('give_sum'):
             return await self.create_order()
+        # form-запрос
         elif request.POST.get('text'):
             return await self.create_feedback()
 
@@ -113,7 +109,7 @@ class ExchangeView(View, FormMixin, ContextMixin):
             return JsonResponse 
         """
 
-        random_string = await services.create_new_order(
+        random_string = await Order.objects.create_new_order(
             give_sum=self.request.POST['give_sum'],
             receive_sum=self.request.POST['receive_sum'],
             give_payment_method_id=self.request.POST['give_payment_method_id'],
@@ -161,7 +157,8 @@ def contacts(request):
 async def get_exchange_rate(request):
     
     try:
-        rates = cache.get('rates')
+        cache_key = 'rates'
+        rates = cache.get(cache_key)
         if not rates:
 
             exchange = network.ExchangeClient(
@@ -170,7 +167,7 @@ async def get_exchange_rate(request):
             )
             rates = await exchange.get_rate()
 
-            cache.set('rates', rates, 1800)
+            cache.set(cache_key, rates, 60)
 
         return JsonResponse(
             data={'rates': json.dumps(rates)},
@@ -187,7 +184,7 @@ class OrderView(DetailView):
     queryset = Order.objects.all()
     slug_field = 'random_string'
     slug_url_kwarg = 'random_string'
-
+    status_code = 200
     extra_context = {
             'nav_bar': NAV_BAR,
             'MEDIA_URL': MEDIA_URL,
@@ -246,29 +243,28 @@ class OrderView(DetailView):
             return: HttpResponse
         """
 
-        status_code = 200
         try:
-            self.object = await Order().get_from_cache(
+            self.object = Order.objects.get_from_cache(
                     random_string = kwargs['random_string'],
                 )
         except ObjectDoesNotExist as exception:
             logging.exception(exception)
             self.object = None
             self.template_name = '404.html'
-            status_code = 404
+            self.status_code = 404
         except PermissionDenied as exception:
             logging.exception(exception)
-            status_code = 403
+            self.status_code = 403
         except Exception as exception:
             logging.exception(exception)
             self.template_name = '500.html'
-            status_code = 500
+            self.status_code = 500
         
         return render(
                     request = request,
                     template_name = self.template_name,
                     context = self.get_context_data(object = getattr(self, 'object', None)),
-                    status = status_code,
+                    status = self.status_code,
                 )
 
     async def post(self, request, *args, **kwargs):
@@ -305,7 +301,7 @@ class OrdersList(ListView):
         } 
     ordering = ['-date_time',]
 
-    async def get_queryset(self):
+    def get_queryset(self):
 
         """
             Находит все заказы клиента, сортируя их по убыванию даты
@@ -316,11 +312,11 @@ class OrdersList(ListView):
         if not get_user(self.request).is_authenticated:
             raise PermissionDenied
         
-        return await Order().get_objects_from_cache(user = get_user(self.request),
+        return Order.objects.get_objects_from_cache(user = get_user(self.request),
                                             order_by = self.get_ordering(),
                                         )
     
-    async def get(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         
         """
             Выводит список заказов для зарегистрированного клиента.
@@ -330,7 +326,7 @@ class OrdersList(ListView):
         """
         
         try:
-            self.object_list = await self.get_queryset()
+            self.object_list = self.get_queryset()
             context = self.get_context_data()
             return self.render_to_response(context)
         except PermissionDenied:

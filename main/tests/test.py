@@ -10,7 +10,7 @@ from main import services
 class CoinsListTest(network.CurrenciesSource):
 
     @classmethod
-    async def get_currency_list(cls):
+    def get_currency_list(cls):
         return ['ETH', 'BTC', 'TEST',]
     
 class ExchangeNetworkTest(TestCase):

@@ -1,11 +1,13 @@
 from django.db import models
+from django.db.models import Subquery
 from django.utils import timezone
 from django.contrib.auth.models import User
 from django.urls import reverse
 from django.core.cache import cache
-from asgiref.sync import sync_to_async
-from django.contrib.auth.signals import user_logged_in, user_logged_out
-from django.dispatch import receiver
+from .exceptions import CreateOrderError
+
+import random
+import string
 
 
 
@@ -132,9 +134,30 @@ class AddressTo(models.Model):
 
     def __str__(self) -> str:
         return f'{self.address}'
-        
+
+class CurrenciesManager(models.Manager):
+    
+    def short_names_of_coins(self):
+        """
+        Вынимает короткие имена валют (уникальные)
+        """
+        short_names = []
+        for coin in self.get_queryset().values(
+                                            'receive__currency_name_short',
+                                            'give__currency_name_short',
+                                        ).distinct():
+            
+            if coin['receive__currency_name_short'] == 'RUB' and coin['give__currency_name_short'] == 'RUB':
+                continue
+            if coin['receive__currency_name_short'] not in short_names:
+                short_names.append(coin['receive__currency_name_short'])
+            if coin['give__currency_name_short'] not in short_names:
+                short_names.append(coin['give__currency_name_short'])
+        return short_names
+    
 class ReceiveGiveCurrencies(models.Model):
     
+    objects = CurrenciesManager()
     class Meta:
         unique_together = (('receive', 'give'),)
         verbose_name = 'Путь обмена'
@@ -164,64 +187,6 @@ class ReceiveGiveCurrencies(models.Model):
     def get_give_currency_name(self):
         return self.give.currency_name
     
-    @sync_to_async
-    def get_coins_from_cache(self):
-
-        cache_key = 'coins_for_exchange'
-        value = cache.get(cache_key)
-        if value == None:
-            coins_to_give = ReceiveGiveCurrencies.objects.values(
-                                    'give_id',
-                                    'give__currency_name',
-                                    'give__currency_name_short',
-                                    'give__image',
-                                    'give__category_payment_method__id',).distinct()
-            coins_to_receive = ReceiveGiveCurrencies.objects.values(
-                                    'receive_id',
-                                    'receive__currency_name',
-                                    'receive__currency_name_short',
-                                    'receive__image',
-                                    'receive__category_payment_method__id',).distinct()
-            value = (
-                [coin for coin in coins_to_give],
-                [coin for coin in coins_to_receive],
-            )
-            cache.set(cache_key, value, 1 * 60 * 60)
-
-        return value
-    
-    @sync_to_async
-    def get_exchange_ways_from_cache(self):
-
-        cache_key = 'exchange_ways'
-        value = cache.get(cache_key)
-        if value == None:
-            value = ReceiveGiveCurrencies.objects.values(
-                                                        'give_id',
-                                                        'receive_id',)
-            cache.set(cache_key, value, 1 * 30 * 60)
-        return value
-    
-    @sync_to_async
-    def get_tokens_from_cache(self):
-
-        cache_key = 'tokens'
-        value = cache.get(cache_key)
-        if value == None:
-            give_tokens = ReceiveGiveCurrencies.objects.values(
-                                               'give_id',
-                                               'give__token_standart__id',
-                                               'give__token_standart__token_standart')\
-                                                .exclude(give__token_standart__id = 1).distinct()
-            receive_tokens = ReceiveGiveCurrencies.objects.values(
-                                                'receive_id',
-                                                'receive__token_standart__id',
-                                                'receive__token_standart__token_standart')\
-                                                .exclude(receive__token_standart__id = 1).distinct()
-            value = (give_tokens, receive_tokens,)
-            cache.set(cache_key, value, 1 * 30 * 60)
-        return value
-    
 class OrderStatus(models.Model):
 
     class Meta:
@@ -237,6 +202,82 @@ class OrderStatus(models.Model):
     def __str__(self) -> str:
         return self.status
 
+class OrderManager(models.Manager):
+
+    def get_from_cache(self, random_string):
+
+        """
+            Возвращает один заказ из кэша
+
+            return: Order
+        """
+
+        cache_key = 'Order.get_one_order(random_string={0})'.format(random_string)
+        value = cache.get(cache_key)
+        if not value:
+            value = self.get_queryset().select_related(
+                                'give',
+                                'receive',
+                                'give_token_standart',
+                                'receive_token_standart',
+                                'address_to',
+                                'status',
+                                'user').get(random_string=random_string)
+            cache.set(cache_key, value, 1 * 60 * 60)
+        return value
+    
+    def get_objects_from_cache(self, user, order_by):
+
+        """ 
+            Возвращает QuerySet заказов из кэша
+
+            return QuerySet
+        """
+        
+        return self.get_queryset().select_related(
+                                        'give',
+                                        'receive',
+                                        'give_token_standart',
+                                        'receive_token_standart',
+                                        'address_to',
+                                        'status',
+                                    ).filter(user=user).order_by(*order_by)
+
+    async def create_new_order(self, *args, **kwargs):
+
+        """
+            Создаёт новый заказ.
+
+            number - номер заказа
+            address - адрес, на который клиент переводит деньги
+            random_string - случайная строка (slug), добавляемая к ссылке на обмен
+
+            return: random_string
+        """
+        try:
+            random_string = ''.join(random.choice(string.ascii_letters) for _ in range(200))
+
+            Order.objects.create(
+                number=Subquery(Order.objects.order_by('-number').values('number')[:1]) + 1,
+                random_string=random_string, 
+                give_sum=kwargs['give_sum'], 
+                receive_sum=kwargs['receive_sum'], 
+                give_id=kwargs['give_payment_method_id'], 
+                receive_id=kwargs['receive_payment_method_id'], 
+                give_token_standart_id=kwargs['give_token_standart_id'], 
+                receive_token_standart_id=kwargs['receive_token_standart_id'],
+                receive_name='Без имени' if kwargs['receive_name'] == '' else kwargs['receive_name'],
+                receive_address='Без адреса' if kwargs['receive_address'] == '' else kwargs['receive_address'],
+                address_to_id=AddressTo.objects.filter(currency_id=kwargs['give_payment_method_id'],
+                                                       token_standart=kwargs['give_token_standart_id']).values('id')[:1],
+                user=kwargs['user'],
+                status_id=Subquery(OrderStatus.objects.filter(id = 2).values('id')),
+            )
+
+            return random_string
+        except Exception as exception:
+            raise CreateOrderError(**kwargs) from exception
+        
 class Order(models.Model):
     
     """
@@ -259,6 +300,8 @@ class Order(models.Model):
         status - статус заказа
     """
     
+    objects = OrderManager()
+
     class Meta:
         verbose_name = 'Заказ'
         verbose_name_plural = 'Заказы'
@@ -344,49 +387,24 @@ class Order(models.Model):
     
     def get_absolute_url(self):
         return reverse('order_info', kwargs={'random_string': self.random_string })
-    
-    async def get_from_cache(self, random_string):
+
+class FeedBackManager(models.Manager):
+
+    def get_objects_from_cache(self):
 
         """
-            Возвращает один заказ из кэша
-
-            return: Order
-        """
-
-        cache_key = 'Order.get_one_order(random_string={0})'.format(self.random_string)
-        value = cache.get(cache_key)
-        if value == None:
-            value = await Order.objects.select_related(
-                                'give',
-                                'receive',
-                                'give_token_standart',
-                                'receive_token_standart',
-                                'address_to',
-                                'status',
-                                'user').aget(random_string=random_string)
-            cache.set(cache_key, value, 1 * 60 * 60)
-        return value
-    
-    async def get_objects_from_cache(self, user, order_by):
-
-        """ TODO убрать
-            Возвращает QuerySet заказов из кэша
+            Возвращает QuerySet отзывов из кэша
 
             return QuerySet
         """
 
-        cache_key = 'Orders.get_orders(user={0})'.format(user.username)
+        cache_key = 'feedback'
         value = cache.get(cache_key)
         if value == None:
-            value = Order.objects.select_related(
-                                'give',
-                                'receive',
-                                'give_token_standart',
-                                'receive_token_standart',
-                                'address_to',
-                                'status').filter(user=user).order_by(*order_by)
+            value = self.get_queryset().select_related('user').order_by('-date_time')[:20]
+            cache.set(cache_key, value, 1 * 60 * 60)
         return value
-
+    
 class FeedBack(models.Model):
     """
         Отзыв клиента
@@ -396,6 +414,7 @@ class FeedBack(models.Model):
         date_time - дата и время создания отзыва
     """
 
+    objects = FeedBackManager()
     class Meta:
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
@@ -414,18 +433,4 @@ class FeedBack(models.Model):
         null = False,
         default = timezone.now,
     )
-
-    def get_objects_from_cache(self):
-
-        """
-            Возвращает QuerySet отзывов из кэша
-
-            return QuerySet
-        """
-
-        cache_key = 'feedback'
-        value = cache.get(cache_key)
-        if value == None:
-            value = FeedBack.objects.select_related('user').order_by('-date_time')[:20]
-            cache.set(cache_key, value, 1 * 60 * 60)
-        return value
+    

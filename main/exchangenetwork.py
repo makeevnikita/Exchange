@@ -1,4 +1,4 @@
-from .services import get_short_names_of_coins
+from .models import ReceiveGiveCurrencies
 
 import httpx
 
@@ -59,14 +59,14 @@ class BitpayAPI(NetworkAPI):
 class CurrenciesSource:
 
     @classmethod
-    async def get_currency_list(cls):
+    def get_currency_list(cls):
         raise NotImplementedError
 
 class CurrenciesFromMYSQL(CurrenciesSource):
 
     @classmethod
-    async def get_currency_list(cls):
-        return await get_short_names_of_coins()
+    def get_currency_list(cls):
+        return ReceiveGiveCurrencies.objects.short_names_of_coins()
 
 class CentreBankAPI(NetworkAPI):
 
@@ -98,7 +98,7 @@ class ExchangeClient:
 
     async def get_rate(self):
 
-        currencies = await self.crypto_source.get_currency_list()
+        currencies = self.crypto_source.get_currency_list()
         rates = {}
         for currency in currencies:
             rates[currency] = None
