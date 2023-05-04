@@ -1,5 +1,6 @@
 from django.db import models
 from django.db.models import Subquery
+from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 from django.contrib.auth.models import User
 from django.urls import reverse
@@ -211,11 +212,11 @@ class OrderManager(models.Manager):
 
             return: Order
         """
-
         cache_key = 'Order.get_one_order(random_string={0})'.format(random_string)
         value = cache.get(cache_key)
         if not value:
-            value = self.get_queryset().select_related(
+            try:
+                value = self.get_queryset().select_related(
                                 'give',
                                 'receive',
                                 'give_token_standart',
@@ -223,7 +224,9 @@ class OrderManager(models.Manager):
                                 'address_to',
                                 'status',
                                 'user').get(random_string=random_string)
-            cache.set(cache_key, value, 1 * 60 * 60)
+                cache.set(cache_key, value, 1 * 60 * 60)
+            except Exception as exception:
+                raise exception
         return value
     
     def get_objects_from_cache(self, user, order_by):
@@ -257,7 +260,7 @@ class OrderManager(models.Manager):
         try:
             random_string = ''.join(random.choice(string.ascii_letters) for _ in range(200))
 
-            Order.objects.create(
+            await Order.objects.acreate(
                 number=Subquery(Order.objects.order_by('-number').values('number')[:1]) + 1,
                 random_string=random_string, 
                 give_sum=kwargs['give_sum'], 
@@ -269,15 +272,32 @@ class OrderManager(models.Manager):
                 receive_name='Без имени' if kwargs['receive_name'] == '' else kwargs['receive_name'],
                 receive_address='Без адреса' if kwargs['receive_address'] == '' else kwargs['receive_address'],
                 address_to_id=AddressTo.objects.filter(currency_id=kwargs['give_payment_method_id'],
-                                                       token_standart=kwargs['give_token_standart_id']).values('id')[:1],
+                                                       token_standart=kwargs['give_token_standart_id']).values('id'),
                 user=kwargs['user'],
-                status_id=Subquery(OrderStatus.objects.filter(id = 2).values('id')),
+                status_id=3,
             )
 
             return random_string
         except Exception as exception:
             raise CreateOrderError(**kwargs) from exception
+
+    def update_status(self, random_string, confirm, *args, **kwargs):
+
+        order = None
+        try:
+            order = Order.objects.filter(random_string=random_string)
+        except:
+            raise
+
+        if confirm:
+            order.update(status_id=2)
+        else:
+            order.delete()
+
+        cache_key = 'Order.get_one_order(random_string={0})'.format(random_string)
+        cache.delete(cache_key)
         
+
 class Order(models.Model):
     
     """

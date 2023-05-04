@@ -1,10 +1,12 @@
-from django.shortcuts import render, redirect
-from django.http import JsonResponse
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
 from django.core.cache import cache
 from django.contrib.auth import get_user
+from django.shortcuts import render, redirect
+from django.template.loader import render_to_string
+from django.http import JsonResponse, HttpResponseServerError
 from django.urls import reverse, reverse_lazy
 from django.views import View
+from django.views.defaults import page_not_found, permission_denied, server_error
 from django.views.generic import ListView, DetailView
 from django.views.generic.base import ContextMixin
 from django.views.generic.edit import FormMixin
@@ -12,7 +14,6 @@ from datetime import datetime
 from .models import Order, FeedBack
 from .forms import FeedBackForm
 from . import exchangenetwork as network
-from . import services
 from .exchangedata import ExchangeData
 from cryptosite.settings import MEDIA_URL, NAV_BAR, IMAGES_URL
 
@@ -179,24 +180,22 @@ async def get_exchange_rate(request):
  
 class OrderView(DetailView):
     
+    object = None
     template_name = 'main/order_info.html'
     context_object_name = 'order'
-    queryset = Order.objects.all()
     slug_field = 'random_string'
     slug_url_kwarg = 'random_string'
-    status_code = 200
     extra_context = {
             'nav_bar': NAV_BAR,
             'MEDIA_URL': MEDIA_URL,
             'IMAGES_URL': IMAGES_URL,
         }
-    
     def calculate_the_time(self, *args, **kwargs):
 
-        """
-            Считает сколько времени осталось на оплату
+        """Считает сколько времени осталось на оплату заказа
 
-            return: dict
+        Returns:
+            time (Dict[str, str]): Словарь в котором количесто минут и секунд
         """
 
         time = {}
@@ -214,13 +213,19 @@ class OrderView(DetailView):
         return time
     
     def get_context_data(self, **kwargs):
-        
-        if self.object:
-            """
-                Если создатель заказа это есть клиент
-                или
-                Если создатель заказа равен None и клиент анонимен
-            """
+        """Инициализирует контекст
+
+        Raises:
+            PermissionDenied: Если аноним пытается получить доступ к заказу
+                              зарегистрированного клиента
+                              Если зарегистрированный клиент пытается
+                              получить доступ к заказу другого зарегистрированного клиента
+
+        Returns:
+            Dict[str, Any]: Контекст. Включает в себя Order
+        """
+        if getattr(self, 'object', None):
+            
             if (self.object.user == get_user(self.request)) or \
                (self.object.user == None and get_user(self.request).is_anonymous):
                 time = self.calculate_the_time(date_time = self.object.date_time)
@@ -235,49 +240,49 @@ class OrderView(DetailView):
         return super().get_context_data(**kwargs)
     
     async def get(self, request, *args, **kwargs):
-
-        """
-            Находит заказ, считает сколько прошло времени с момента создания заказа.
-            Клиент видит данные заказа и сколько времени осталось, чтобы оплатить его.
+        
+        """Рендерит Order
+        
+        Args:
+            request (HttpRequest): Http-запрос
             
-            return: HttpResponse
+        Returns:
+            HttResponse: Ответ. Содержит объект Order.
         """
 
         try:
             self.object = Order.objects.get_from_cache(
-                    random_string = kwargs['random_string'],
+                    random_string = kwargs['random_string']
                 )
         except ObjectDoesNotExist as exception:
             logging.exception(exception)
-            self.object = None
-            self.template_name = '404.html'
-            self.status_code = 404
+            return page_not_found(request, exception)
         except PermissionDenied as exception:
             logging.exception(exception)
-            self.status_code = 403
+            return permission_denied(request, exception)
         except Exception as exception:
             logging.exception(exception)
-            self.template_name = '500.html'
-            self.status_code = 500
-        
-        return render(
-                    request = request,
-                    template_name = self.template_name,
-                    context = self.get_context_data(object = getattr(self, 'object', None)),
-                    status = self.status_code,
-                )
+            return server_error(request, exception)
+        else:
+            return self.render_to_response(
+                context=self.get_context_data(object=getattr(self, 'object', None))
+            )
 
     async def post(self, request, *args, **kwargs):
-        """
-            Получает ответ от клиента о том, оплатил ли он заказ или нет.
+        """Получает ответ от клиента о том, оплатил ли он заказ или нет
 
-            return: JsonResponse
+        Args:
+            request (HttpRequest): Http-запрос
+
+        Returns:
+            JsonResponse: Ответ. 
         """
+        
         if request.POST['confirm']:
-            order = await services.update_status(
-                    kwargs['random_string'],
-                    json.loads(request.POST.get('confirm')),
-                )
+            Order.objects.update_status(
+                random_string=kwargs['random_string'],
+                confirm=json.loads(request.POST.get('confirm')),
+            )
             return JsonResponse(
                     data={ 'link': reverse('main') },
                     safe=False,
