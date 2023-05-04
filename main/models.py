@@ -1,6 +1,5 @@
 from django.db import models
 from django.db.models import Subquery
-from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 from django.contrib.auth.models import User
 from django.urls import reverse
@@ -139,21 +138,24 @@ class AddressTo(models.Model):
 class CurrenciesManager(models.Manager):
     
     def short_names_of_coins(self):
+        """Вынимает уникальные 'currency_name_short' из ReceiveGiveCurrencies
+
+        Returns:
+            QuerySet: 'currency_name_short' из ReceiveGiveCurrencies
         """
-        Вынимает короткие имена валют (уникальные)
-        """
-        short_names = []
-        for coin in self.get_queryset().values(
-                                            'receive__currency_name_short',
-                                            'give__currency_name_short',
-                                        ).distinct():
-            
-            if coin['receive__currency_name_short'] == 'RUB' and coin['give__currency_name_short'] == 'RUB':
-                continue
-            if coin['receive__currency_name_short'] not in short_names:
-                short_names.append(coin['receive__currency_name_short'])
-            if coin['give__currency_name_short'] not in short_names:
-                short_names.append(coin['give__currency_name_short'])
+        coins_to_give = self.get_queryset().values(
+                                'give__currency_name_short'
+                            ).exclude(
+                                give__currency_name_short='RUB'
+                            ).distinct()
+        
+        coins_to_receive = self.get_queryset().values(
+                                'receive__currency_name_short'
+                            ).exclude(
+                                receive__currency_name_short='RUB'
+                            ).distinct()
+        
+        short_names = coins_to_give.union(coins_to_receive)
         return short_names
     
 class ReceiveGiveCurrencies(models.Model):
@@ -297,7 +299,6 @@ class OrderManager(models.Manager):
         cache_key = 'Order.get_one_order(random_string={0})'.format(random_string)
         cache.delete(cache_key)
         
-
 class Order(models.Model):
     
     """

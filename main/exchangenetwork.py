@@ -101,15 +101,15 @@ class ExchangeClient:
         currencies = self.crypto_source.get_currency_list()
         rates = {}
         for currency in currencies:
-            rates[currency] = None
+            rates[currency['give__currency_name_short']] = None
 
         api_list = [PoloniexAPI.get_rate, BitpayAPI.get_rate]
         
         for currency in currencies:
             for api in api_list:
-                rate = await api(currency)
+                rate = await api(currency['give__currency_name_short'])
                 if (rate != None):
-                    rates[currency] = float(rate)
+                    rates[currency['give__currency_name_short']] = float(rate)
                     break
 
         rates['RUB'] = await self.usd_source.get_rate()

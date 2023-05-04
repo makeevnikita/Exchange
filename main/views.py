@@ -2,8 +2,7 @@ from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
 from django.core.cache import cache
 from django.contrib.auth import get_user
 from django.shortcuts import render, redirect
-from django.template.loader import render_to_string
-from django.http import JsonResponse, HttpResponseServerError
+from django.http import JsonResponse
 from django.urls import reverse, reverse_lazy
 from django.views import View
 from django.views.defaults import page_not_found, permission_denied, server_error
@@ -39,9 +38,7 @@ class ExchangeView(View, FormMixin, ContextMixin):
     
     async def get_objects(self, *args, **kwargs):
         
-        """
-        Здесь происходит инициализация данных
-        """
+        """Делегирует инициализацию данных в ExchangeData"""
 
         exchange_data = ExchangeData()
         self.extra_context['give_coins'] = exchange_data.get_data('give_coins')
@@ -53,6 +50,11 @@ class ExchangeView(View, FormMixin, ContextMixin):
 
     async def get_context_data(self, *args, **kwargs):
         
+        """Инициализирует контекст
+
+        Returns:
+            Dict[str, any]: Данные, нужные для создания заказа
+        """
         try:
             await self.get_objects()
         except Exception as exception:
@@ -64,10 +66,10 @@ class ExchangeView(View, FormMixin, ContextMixin):
 
     async def get(self, request, *args, **kwargs):
 
-        """
-            Главная страница сайта.
-            
-            return: HttpResponse
+        """Главная страница сайта
+
+        Returns:
+            HttResponse: 
         """
         
         try:
@@ -89,6 +91,9 @@ class ExchangeView(View, FormMixin, ContextMixin):
             Принимает запросы:
                 ajax-запрос на создание заказа
                 запрос из формы на создание отзыва
+
+            Returns:
+            JsonResponse: Если это запрос на создание заказа
         """
         # ajax-запрос
         if request.POST.get('give_sum'):
@@ -167,7 +172,7 @@ async def get_exchange_rate(request):
                 network.CentreBankAPI
             )
             rates = await exchange.get_rate()
-
+    
             cache.set(cache_key, rates, 60)
 
         return JsonResponse(
