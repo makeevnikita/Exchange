@@ -90,6 +90,7 @@ class NullAPI(NetworkAPI):
         return None
 
 class ExchangeClient:
+    """Запрашивает курсы валют из сторонних API"""
     
     def __init__(self, crypto_source: CurrenciesSource, usd_source: NetworkAPI = NullAPI) -> None:
 
@@ -99,17 +100,15 @@ class ExchangeClient:
     async def get_rate(self):
 
         currencies = self.crypto_source.get_currency_list()
-        rates = {}
-        for currency in currencies:
-            rates[currency['give__currency_name_short']] = None
+        rates = dict.fromkeys(currencies)
 
         api_list = [PoloniexAPI.get_rate, BitpayAPI.get_rate]
         
         for currency in currencies:
             for api in api_list:
-                rate = await api(currency['give__currency_name_short'])
+                rate = await api(currency)
                 if (rate != None):
-                    rates[currency['give__currency_name_short']] = float(rate)
+                    rates[currency] = float(rate)
                     break
 
         rates['RUB'] = await self.usd_source.get_rate()

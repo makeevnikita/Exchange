@@ -8,7 +8,12 @@ from main import services
 
 
 class CoinsListTest(network.CurrenciesSource):
+    """Класс с тестовыми данными.
+       Наследуется от абстрактного класса CurrenciesSource 
 
+    Returns:
+        list: Захардкоженные названия валют
+    """
     @classmethod
     def get_currency_list(cls):
         return ['ETH', 'BTC', 'TEST',]
@@ -110,9 +115,8 @@ class ExchangeNetworkTest(TestCase):
 
         exchange = network.ExchangeClient(network.CurrenciesFromMYSQL, network.CentreBankAPI)
         rates = await exchange.get_rate()
-        print('Rates:{0}'.format(rates.items()))
         
-        self.assertTrue(None not in rates.values())
+        self.assertNotIn(None, rates.values())
 
     @tag('slow')
     async def test_rates_has_none(self):
@@ -124,9 +128,8 @@ class ExchangeNetworkTest(TestCase):
 
         exchange = network.ExchangeClient(CoinsListTest, network.CentreBankAPI)
         rates = await exchange.get_rate()
-        print('Rates:{0}'.format(rates.items()))
         
-        self.assertTrue(None in rates.values())
+        self.assertIn(None, rates.values())
     
     @tag('fast')
     async def creating_orders(self):

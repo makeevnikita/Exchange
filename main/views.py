@@ -339,9 +339,8 @@ class OrdersList(ListView):
             self.object_list = self.get_queryset()
             context = self.get_context_data()
             return self.render_to_response(context)
-        except PermissionDenied:
+        except PermissionDenied as exception:
             return redirect(reverse('login'))
         except Exception as exception:
             logging.exception(exception)
-            self.template_name = '500.html'
-            # TODO
+            return server_error(request, exception)
