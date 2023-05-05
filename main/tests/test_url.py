@@ -3,7 +3,6 @@ from main.models import ReceiveCurrency, GiveCurrency, ReceiveGiveCurrencies,\
                         TokenStandart, CategoryPaymentMethod, Order, AddressTo
 from django.contrib.auth.models import User
 from django.urls import reverse
-from django.contrib.auth import login, logout
 
 
 
