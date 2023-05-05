@@ -287,7 +287,7 @@ class OrderManager(models.Manager):
 
         order = None
         try:
-            order = Order.objects.filter(random_string=random_string)
+            order = self.get_queryset().filter(random_string=random_string)
         except:
             raise
 
