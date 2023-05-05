@@ -7,10 +7,12 @@ from main.models import FeedBack
 
 
 class FormsTest(TestCase):
-
+    """Тест для форм"""
+    
     @tag('fast')
     def test_feedback_form(self):
-        
+        """Тест формы FeedBackForm"""
+
         form = FeedBackForm()
     
         self.assertIsInstance(
