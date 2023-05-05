@@ -55,46 +55,45 @@ class ExchangeView(View, FormMixin, ContextMixin):
         Returns:
             Dict[str, any]: Данные, нужные для создания заказа
         """
+        
         try:
             await self.get_objects()
         except Exception as exception:
             logging.exception(exception)
-            
-            self.template_name = '500.html'
-            
-        return super().get_context_data(**kwargs)
+        else:
+            return super().get_context_data(**kwargs)
 
     async def get(self, request, *args, **kwargs):
 
         """Главная страница сайта
 
         Returns:
-            HttResponse: 
+            HttpResponse: Содержит данные о валютах, способах обмена, отзывы
         """
-        
+
         try:
             context = await self.get_context_data()
         except Exception as exception:
             logging.exception(exception)
-            
-            self.template_name = '500.html'
-        
-        return render(
-                request = self.request,
-                template_name = self.template_name,
-                context = context,
+            return server_error(request, exception)
+        else:
+            return render(
+                request=self.request,
+                template_name=self.template_name,
+                context=context,
             )
-        
+  
     async def post(self, request, *args, **kwargs):
         
-        """
-            Принимает запросы:
+        """Принимает POST-запросы:
                 ajax-запрос на создание заказа
                 запрос из формы на создание отзыва
 
-            Returns:
+        Returns:
             JsonResponse: Если это запрос на создание заказа
+            HttpResponse: Если это запрос на создание отзыва
         """
+       
         # ajax-запрос
         if request.POST.get('give_sum'):
             return await self.create_order()
@@ -104,15 +103,11 @@ class ExchangeView(View, FormMixin, ContextMixin):
 
     async def create_order(self, *args, **kwargs):
 
-        """
-            Создаёт новый заказ.
+        """Делегирует создание нового заказа.
+           От клиента приходит ajax-запрос, который содержит данные заказа.
 
-            От клиента приходит ajax-запрос, который содержит данные заказа
-            
-            random_string - ссылка на заказ
-            user - клиент, если он прошёл аутентификацию, иначе None
-
-            return JsonResponse 
+        Returns:
+            JsonResponse: Содержит ссылку на страницу с заказом
         """
 
         random_string = await Order.objects.create_new_order(
@@ -133,10 +128,10 @@ class ExchangeView(View, FormMixin, ContextMixin):
     
     async def create_feedback(self, *args, **kwargs):
 
-        """
-            Создаёт отзыв
+        """Делегирует создание отзыва
 
-            return: HttpResponse
+        Returns:
+            HttpResponse: Ответ содержит страницу 'self.success_url'
         """
 
         form = self.get_form()
@@ -161,7 +156,14 @@ def contacts(request):
     pass
 
 async def get_exchange_rate(request):
+    """Возвращает курсы валют из сторонних API
     
+    Args:
+        request (HttpRequest): Http-запрос
+
+    Returns:
+        JsonResponse: Словарь с курсами валют Dict[str, float]
+    """
     try:
         cache_key = 'rates'
         rates = cache.get(cache_key)
@@ -184,7 +186,8 @@ async def get_exchange_rate(request):
         logging.exception(exception)
  
 class OrderView(DetailView):
-    
+    """Один заказ клиента"""
+
     object = None
     template_name = 'main/order_info.html'
     context_object_name = 'order'
@@ -229,6 +232,7 @@ class OrderView(DetailView):
         Returns:
             Dict[str, Any]: Контекст. Включает в себя Order
         """
+
         if getattr(self, 'object', None):
             
             if (self.object.user == get_user(self.request)) or \
@@ -258,7 +262,7 @@ class OrderView(DetailView):
         try:
             self.object = Order.objects.get_from_cache(
                     random_string = kwargs['random_string']
-                )
+            )
         except ObjectDoesNotExist as exception:
             logging.exception(exception)
             return page_not_found(request, exception)
@@ -302,7 +306,7 @@ class OrderView(DetailView):
 
 class OrdersList(ListView):
     """Заказы клиента"""
-    
+
     template_name = 'main/order_list.html'
     context_object_name = 'orders'
     extra_context = {
