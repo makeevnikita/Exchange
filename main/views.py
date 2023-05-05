@@ -301,7 +301,8 @@ class OrderView(DetailView):
                 logging.exception(exception)
 
 class OrdersList(ListView):
-
+    """Заказы клиента"""
+    
     template_name = 'main/order_list.html'
     context_object_name = 'orders'
     extra_context = {
@@ -310,37 +311,41 @@ class OrdersList(ListView):
             'title': 'Заказы',
         } 
     ordering = ['-date_time',]
-
+    
     def get_queryset(self):
 
-        """
-            Находит все заказы клиента, сортируя их по убыванию даты
+        """Находит все заказы клиента, сортируя их по убыванию даты
 
-            Если клиент анонимный, то возникает исключение PermissionDenied
+        Raises:
+            PermissionDenied: Если клиент анонимный
+
+        Returns:
+            QuerySet: Закза клиента
         """
 
         if not get_user(self.request).is_authenticated:
             raise PermissionDenied
         
-        return Order.objects.get_objects_from_cache(user = get_user(self.request),
-                                            order_by = self.get_ordering(),
-                                        )
-    
+        return Order.objects.get_objects_from_cache(
+            user=get_user(self.request),
+            order_by=self.get_ordering(),
+        )
+
     def get(self, request, *args, **kwargs):
-        
+
+        """Выводит список заказов для зарегистрированного клиента.
+           Если клиент анонимный, то переводит его на страницу login.
+
+        Returns:
+            HttpResponse: Заказы клиента
         """
-            Выводит список заказов для зарегистрированного клиента.
-            Если клиент анонимный, то переводит его на страницу login.
-            
-            return: HttpResponse
-        """
-        
+
         try:
             self.object_list = self.get_queryset()
-            context = self.get_context_data()
-            return self.render_to_response(context)
         except PermissionDenied as exception:
             return redirect(reverse('login'))
         except Exception as exception:
             logging.exception(exception)
             return server_error(request, exception)
+        else:
+            return self.render_to_response(self.get_context_data())
