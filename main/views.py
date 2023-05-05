@@ -35,18 +35,6 @@ class ExchangeView(View, FormMixin, ContextMixin):
         'title': 'Главная',
     }
     form_class = FeedBackForm
-    
-    async def get_objects(self, *args, **kwargs):
-        
-        """Делегирует инициализацию данных в ExchangeData"""
-
-        exchange_data = ExchangeData()
-        self.extra_context['give_coins'] = exchange_data.get_data('give_coins')
-        self.extra_context['receive_coins'] = exchange_data.get_data('receive_coins')
-        self.extra_context['exchange_ways'] = exchange_data.get_data('exchange_ways')
-        self.extra_context['give_tokens'] = exchange_data.get_data('give_tokens')
-        self.extra_context['receive_tokens'] = exchange_data.get_data('receive_tokens')
-        self.extra_context['feedbacks'] = exchange_data.get_data('feedbacks')
 
     async def get_context_data(self, *args, **kwargs):
         
@@ -57,11 +45,9 @@ class ExchangeView(View, FormMixin, ContextMixin):
         """
         
         try:
-            await self.get_objects()
+            return super().get_context_data(**ExchangeData().get_data())
         except Exception as exception:
             logging.exception(exception)
-        else:
-            return super().get_context_data(**kwargs)
 
     async def get(self, request, *args, **kwargs):
 
@@ -72,16 +58,14 @@ class ExchangeView(View, FormMixin, ContextMixin):
         """
 
         try:
-            context = await self.get_context_data()
-        except Exception as exception:
-            logging.exception(exception)
-            return server_error(request, exception)
-        else:
             return render(
                 request=self.request,
                 template_name=self.template_name,
-                context=context,
+                context=await self.get_context_data(),
             )
+        except Exception as exception:
+            logging.exception(exception)
+            return server_error(request, exception)
   
     async def post(self, request, *args, **kwargs):
         
@@ -243,10 +227,10 @@ class OrderView(DetailView):
 
                 self.extra_context['minutes'] = time['minutes']
                 self.extra_context['seconds'] = time['seconds']
+
+                return super().get_context_data(**kwargs)
             else:
                 raise PermissionDenied
-
-        return super().get_context_data(**kwargs)
     
     async def get(self, request, *args, **kwargs):
         

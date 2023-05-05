@@ -7,17 +7,19 @@ import json
 
 class ExchangeData:
 
-    """
-    Отправляет SQL-запросы
-
-    Запросы вытягивают: валюту, которую может отдать клиент
-                        валюту, которую может получить клиент
-                        сети валют, в которых мы принимаем
-                        сети валют, в которых мы отдаём
-                        пути обмена (модель ManyToMany)
-                        отзывы
-    """
     def init_data(self):
+        """Отправляет SQL-запросы
+
+        Запросы вытягивают: валюту, которую может отдать клиент
+                            валюту, которую может получить клиент
+                            сети валют, в которых мы принимаем
+                            сети валют, в которых мы отдаём
+                            пути обмена (модель ManyToMany)
+                            отзывы
+
+        Returns:
+            data (Dict[str, any]): Валюты для обмена, пути обмена, отзывы
+        """
 
         data = {}
 
@@ -60,11 +62,11 @@ class ExchangeData:
 
         return data
         
-    def get_data(self, key):
+    def get_data(self):
 
         cache_key = 'exchange_data'
         value = cache.get(cache_key)
         if value == None:
             value = self.init_data()
             cache.set(cache_key, value, 1 * 60 * 60)
-        return value[key]
+        return value
