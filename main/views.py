@@ -36,7 +36,7 @@ class ExchangeView(View, FormMixin, ContextMixin):
     template_name = 'main/coins.html'
     form_class = FeedBackForm
 
-    async def get_context_data(self, *args, **kwargs):
+    def get_context_data(self, *args, **kwargs):
         
         """Инициализирует контекст
 
@@ -58,11 +58,11 @@ class ExchangeView(View, FormMixin, ContextMixin):
             return render(
                 request=self.request,
                 template_name=self.template_name,
-                context=await self.get_context_data(),
+                context=self.get_context_data(),
             )
         except Exception as exception:
             logging.exception(exception)
-            return server_error(request, '500.html')
+            return server_error(request)
   
     async def post(self, request, *args, **kwargs):
         
@@ -179,6 +179,7 @@ class OrderView(DetailView):
             'MEDIA_URL': MEDIA_URL,
             'IMAGES_URL': IMAGES_URL,
         }
+
     def calculate_the_time(self, *args, **kwargs):
 
         """Считает сколько времени осталось на оплату заказа
@@ -200,7 +201,7 @@ class OrderView(DetailView):
             time['seconds'] = seconds if seconds >= 10 else '0{0}'.format(seconds)
 
         return time
-    
+
     def get_context_data(self, **kwargs):
         """Инициализирует контекст
 
@@ -252,7 +253,7 @@ class OrderView(DetailView):
             return permission_denied(request, exception)
         except Exception as exception:
             logging.exception(exception)
-            return server_error(request, exception)
+            return server_error(request)
         else:
             return self.render_to_response(
                 context=self.get_context_data(object=getattr(self, 'object', None))
@@ -288,15 +289,15 @@ class OrderView(DetailView):
 class OrdersList(ListView):
     """Заказы клиента"""
 
-    template_name = 'main/order_list.html'
-    context_object_name = 'orders'
     extra_context = {
             'nav_bar': NAV_BAR,
             'MEDIA_URL': MEDIA_URL,
             'title': 'Заказы',
-        } 
+    } 
+    template_name = 'main/order_list.html'
+    context_object_name = 'orders'
     ordering = ['-date_time',]
-    
+
     def get_queryset(self):
 
         """Находит все заказы клиента, сортируя их по убыванию даты
