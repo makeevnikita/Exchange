@@ -102,6 +102,11 @@ class ReceiveCurrency(AbstractCurrency):
         verbose_name = 'Валюта, которую получает клиент'
         verbose_name_plural = 'Валюты, которые получает клиент'
     
+    fund = models.FloatField(
+        null = False,
+        default = 0,
+    )
+    
 class AddressTo(models.Model):
     
     """

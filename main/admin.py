@@ -34,10 +34,11 @@ class AddressToAdmin(admin.ModelAdmin):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    readonly_fields = ('user', 'number', 'date_time', 'give_sum',
-                       'receive_sum', 'give', 'receive',
-                       'give_token_standart', 'receive_token_standart',
-                       'receive_name', 'receive_address', 'address_to',
-                    )
+    readonly_fields = (
+        'status', 'user', 'number', 'date_time', 'give_sum',
+        'receive_sum', 'give', 'receive',
+        'give_token_standart', 'receive_token_standart',
+        'receive_name', 'receive_address', 'address_to',
+    )
     list_display = ('number', 'date_time',)
     exclude = ('random_string', )
