@@ -307,23 +307,7 @@ class OrderManager(models.Manager):
 class Order(models.Model):
     
     """
-        Заказы.
-
-        number - номер заказа
-        random_string - ссылка на заказ
-        date_time - время и дата заказа
-        give_sum - сумма, которую отдаёт клиент
-        receive_sum - сумма, которую получает клиент
-        give - валюта, которую отдаёт клиент
-        receive - валюта, которую получает клиент
-        give_token_standart - сеть криптовалюты, которую отдаёт клиент
-        receive_token_standart - сеть криптовалюты, которую получает клиент
-        receive_name - имя получателя
-        receive_address - адрес кошелька получателя
-        address_to - адрес, на который клиент переводит свои деньги
-        paid - исполнен ли заказ
-        user - заказчик
-        status - статус заказа
+        Заказ
     """
     
     objects = OrderManager()
@@ -338,74 +322,89 @@ class Order(models.Model):
     number = models.IntegerField(
         null = False,
         default = 0,
+        verbose_name = 'Номер заказа',
     )
     random_string = models.CharField(
         max_length = 200,
         null = False,
         default = 'Нет строки',
+        verbose_name = 'Ссылка на заказ',
     )
     date_time = models.DateTimeField(
         null = False,
         default = timezone.now,
+        verbose_name = 'Время и дата заказа',
     )
     give_sum = models.FloatField(
         null = False,
         default = 0,
+        verbose_name = 'Cумма, которую отдаёт клиент',
     )
     receive_sum = models.FloatField(
         null = False,
         default = 0,
+        verbose_name = 'Сумма, которую получает клиент',
     )
     give = models.ForeignKey(
         GiveCurrency,
         on_delete = models.SET_NULL,
         null = True,
+        verbose_name = 'Валюта, которую отдаёт клиент',
     )
     receive = models.ForeignKey(
         ReceiveCurrency,
         on_delete = models.SET_NULL,
         null = True,
+        verbose_name = 'Валюта, которую получает клиент',
     )
     give_token_standart = models.ForeignKey(
         TokenStandart,
         on_delete = models.SET_NULL,
         null = True,
         related_name = 'give_token_standart',
+        verbose_name = 'Сеть криптовалюты, которую отдаёт клиент',
     )
     receive_token_standart = models.ForeignKey(
         TokenStandart,
         on_delete = models.SET_NULL,
         null = True,
         related_name = 'receive_token_standart',
+        verbose_name = 'Сеть криптовалюты, которую получает клиент',
     )
     receive_name = models.CharField(
         max_length = 255,
         null = False,
         default = 'Без имени',
+        verbose_name = 'Имя владельца карты',
     )
     receive_address = models.CharField(
         max_length = 255,
         null = False, 
         default = 'Без адреса',
+        verbose_name = 'Адрес кошелька получателя',
     )
     address_to = models.ForeignKey(
         AddressTo,
         on_delete = models.SET_NULL,
         null = True,
+        verbose_name = 'Адрес, на который клиент переводит свои деньги'
     )
     paid = models.BooleanField(
         null = False,
         default = False,
+        verbose_name = 'Заказ исполнен'
     )
     user = models.ForeignKey(
         User,
         null = True,
         on_delete = models.SET_NULL,
+        verbose_name = 'Клиент',
     )
     status = models.ForeignKey(
         OrderStatus,
         null = True,
         on_delete = models.SET_NULL,
+        verbose_name = 'Статус заказа' 
     )
 
     def __str__(self) -> str:
