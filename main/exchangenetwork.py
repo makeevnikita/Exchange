@@ -66,7 +66,9 @@ class CurrenciesFromMYSQL(CurrenciesSource):
 
     @classmethod
     def get_currency_list(cls):
-        return ReceiveGiveCurrencies.objects.short_names_of_coins()
+        queryset = ReceiveGiveCurrencies.objects.short_names_of_coins()
+        currencies = [x['give__currency_name_short'] for x in queryset]
+        return currencies
 
 class CentreBankAPI(NetworkAPI):
 
