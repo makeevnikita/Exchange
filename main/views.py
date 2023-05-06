@@ -27,13 +27,13 @@ class ExchangeView(View, FormMixin, ContextMixin):
     
     """Главная страница сайта"""
     
-    success_url = reverse_lazy('main')
-    template_name = 'main/coins.html'
     extra_context = {
         'nav_bar': NAV_BAR,
         'MEDIA_URL': MEDIA_URL,
         'title': 'Главная',
     }
+    success_url = reverse_lazy('main')
+    template_name = 'main/coins.html'
     form_class = FeedBackForm
 
     async def get_context_data(self, *args, **kwargs):
@@ -44,10 +44,7 @@ class ExchangeView(View, FormMixin, ContextMixin):
             Dict[str, any]: Данные, нужные для создания заказа
         """
         
-        try:
-            return super().get_context_data(**ExchangeData().get_data())
-        except Exception as exception:
-            logging.exception(exception)
+        return super().get_context_data(**ExchangeData().get_data())
 
     async def get(self, request, *args, **kwargs):
 
@@ -65,7 +62,7 @@ class ExchangeView(View, FormMixin, ContextMixin):
             )
         except Exception as exception:
             logging.exception(exception)
-            return server_error(request, exception)
+            return server_error(request, '500.html')
   
     async def post(self, request, *args, **kwargs):
         

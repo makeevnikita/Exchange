@@ -63,7 +63,7 @@ class ExchangeData:
         return data
         
     def get_data(self):
-
+        a = 1 / 0
         cache_key = 'exchange_data'
         value = cache.get(cache_key)
         if value == None:
