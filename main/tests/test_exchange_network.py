@@ -1,9 +1,8 @@
-from django.test import TestCase, tag
+from django.test import TransactionTestCase, tag
 from django.contrib.auth.models import User
 from main import exchangenetwork as network
 from main.models import ReceiveCurrency, GiveCurrency, ReceiveGiveCurrencies,\
-                        TokenStandart, CategoryPaymentMethod
-from main import services
+                        TokenStandart, CategoryPaymentMethod, Order
 
 
 
@@ -18,7 +17,7 @@ class CoinsListTest(network.CurrenciesSource):
     def get_currency_list(cls):
         return ['ETH', 'BTC', 'TEST',]
     
-class ExchangeNetworkTest(TestCase):
+class ExchangeNetworkTest(TransactionTestCase):
     
     """
         Проверяет возможность взять курсы валют из сторонних API
@@ -132,13 +131,13 @@ class ExchangeNetworkTest(TestCase):
         self.assertIn(None, rates.values())
     
     @tag('fast')
-    async def creating_orders(self):
+    async def test_creating_orders(self):
             
         """
             Создаёт заказ.
         """
 
-        random_string = await services.create_new_order(
+        random_string = Order.objects.create_new_order(
             give_sum=1000,
             receive_sum=1000,
             give_payment_method_id=GiveCurrency.objects.get(currency_name_short='RUB').id,
@@ -147,6 +146,6 @@ class ExchangeNetworkTest(TestCase):
             receive_token_standart_id=TokenStandart.objects.get(token_standart='BIP20').id,
             receive_name='TEST_USER',
             receive_address='0000000000000000',
-            user=User.objects.get(username='test_user')
+            user=User.objects.get(username='user_test')
         )
         self.assertTrue(random_string)
