@@ -49,9 +49,11 @@ class OrderAdmin(admin.ModelAdmin):
         
         if obj.paid == True:
 
-            with transaction.atomic():
+            try:
                 currency = ReceiveCurrency.objects.get(id=obj.receive_id)
                 currency.fund -= obj.receive_sum
                 currency.save(update_fields=['fund',])
                 return super().save_model(request, obj, form, change)
+            except Exception as exception:
+                raise exception
     
