@@ -458,4 +458,8 @@ class FeedBack(models.Model):
         null = False,
         default = timezone.now,
     )
-    
+    display = models.BooleanField(
+        null=False,
+        default=False,
+        verbose_name='Показывать',
+    )

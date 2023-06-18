@@ -1,5 +1,5 @@
 from .models import ReceiveGiveCurrencies
-
+from abc import ABC, abstractmethod
 import httpx
 
 
@@ -9,13 +9,15 @@ class GetRateError(Exception):
     def __init__(self, __name__, response) -> None:
         super().__init__(f'{__name__}: Failed to get rate. URL: {response.url}. Status code: {response.status_code}')
 
-class NetworkAPI:
+class NetworkAPI(ABC):
     
     @classmethod
+    @abstractmethod
     async def get_rate(cls, currency_name):
         raise NotImplementedError
     
     @classmethod
+    @abstractmethod
     def check_status_code(cls, response) -> bool:
         if (response.status_code != 200):
             return False
@@ -56,9 +58,10 @@ class BitpayAPI(NetworkAPI):
         except Exception as exception:
             raise exception
 
-class CurrenciesSource:
+class CurrenciesSource(ABC):
 
     @classmethod
+    @abstractmethod
     def get_currency_list(cls):
         raise NotImplementedError
 
@@ -74,7 +77,7 @@ class CentreBankAPI(NetworkAPI):
 
     @classmethod
     async def get_rate(cls):
-
+        
         try:
             async with httpx.AsyncClient() as client:
                     response = await client.get('https://www.cbr-xml-daily.ru/daily_json.js')

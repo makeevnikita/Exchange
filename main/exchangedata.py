@@ -58,7 +58,7 @@ class ExchangeData:
                                                     .exclude(receive__token_standart__id = 1).distinct()
         data['receive_tokens'] = json.dumps(list(receive_tokens))
 
-        data['feedbacks'] = FeedBack.objects.select_related('user').order_by('-date_time')[:20]
+        data['feedbacks'] = FeedBack.objects.select_related('user').order_by('-date_time').filter(display=True)[:20]
 
         return data
         

@@ -28,7 +28,7 @@ details {
     margin: 10px;
 }
 
-h1 {
+h1 {    
     margin-left: 20px;
 }
 
@@ -36,6 +36,7 @@ summary {
     font-weight: bold;
     margin: -0.5em -0.5em 0;
     padding: 0.5em;
+    cursor: pointer;
 }
 
 details[open] {
@@ -45,4 +46,13 @@ details[open] {
 details[open] summary {
     border-bottom: 1px solid #aaa;
     margin-bottom: 0.5em;
+}
+.content {
+    font-family: 'Roboto', cursive;
+    min-height: 100%;
+    display: flex;
+    justify-content: center;
+}
+.rule-block {
+    width: 80%
 }
