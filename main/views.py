@@ -1,6 +1,7 @@
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
 from django.core.cache import cache
 from django.contrib.auth import get_user
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.urls import reverse, reverse_lazy
@@ -123,6 +124,8 @@ class ExchangeView(View, FormMixin, ContextMixin):
                 )
             return super().form_valid(form)
 
+
+
 def rules(request):
 
     if (request.method == 'GET'):
@@ -165,7 +168,9 @@ async def get_exchange_rate(request):
         )
     except Exception as exception:
         logging.exception(exception)
- 
+
+
+
 class OrderView(DetailView):
     """Один заказ клиента"""
 
@@ -286,17 +291,18 @@ class OrderView(DetailView):
             except Exception as exception:
                 logging.exception(exception)
 
-class OrdersList(ListView):
+class OrdersList(LoginRequiredMixin, ListView):
     """Заказы клиента"""
 
+    login_url = '/login/'
+    template_name = 'main/order_list.html'
+    context_object_name = 'orders'
+    ordering = ['-date_time',]
     extra_context = {
             'nav_bar': NAV_BAR,
             'MEDIA_URL': MEDIA_URL,
             'title': 'Заказы',
     } 
-    template_name = 'main/order_list.html'
-    context_object_name = 'orders'
-    ordering = ['-date_time',]
 
     def get_queryset(self):
 
@@ -328,8 +334,6 @@ class OrdersList(ListView):
 
         try:
             self.object_list = self.get_queryset()
-        except PermissionDenied as exception:
-            return redirect(reverse('login'))
         except Exception as exception:
             logging.exception(exception)
             return server_error(request, exception)
